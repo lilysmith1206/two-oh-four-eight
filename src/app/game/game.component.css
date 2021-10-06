@@ -1,0 +1,11 @@
+
+.tile {
+  min-height: 75px;
+  min-width: 75px;
+  border: 1px solid black;
+  outline: none;
+}
+
+.empty::after {
+  content: '';
+}

@@ -1,0 +1,16 @@
+<div *ngFor="let row of tiles;
+     let rowIndex = index"
+     class="row justify-content-center"
+>
+  <div *ngFor="let tile of row;"
+       TileDirective
+       [value]='tile.value'
+       [rowIndex]='rowIndex'
+       [columnIndex]='row.indexOf(tile)'
+       class="d-flex align-items-center justify-content-center"
+       tabindex="-1"
+       (keydown)='test($event)'
+  >
+    {{ tile.value }}
+  </div>
+</div>
