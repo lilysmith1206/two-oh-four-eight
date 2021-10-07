@@ -2,10 +2,26 @@
 .tile {
   min-height: 75px;
   min-width: 75px;
-  border: 1px solid black;
-  outline: none;
+}
+
+div.create {
+  animation: initiate linear 1 0.5s;
 }
 
 .empty::after {
   content: '';
+}
+
+div#game-container {
+  outline: none;
+}
+
+@keyframes initiate {
+  from {
+    opacity: 0.5;
+  }
+  to {
+    opacity: 1;
+
+  }
 }

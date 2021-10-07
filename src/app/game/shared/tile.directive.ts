@@ -1,13 +1,14 @@
 import { Directive, Input, Renderer2, ElementRef, HostListener, OnInit } from '@angular/core';
 import { BoardService } from './board.service';
+import { Tile } from './tile.template';
 
 @Directive({
   selector: '[TileDirective]'
 })
 export class TileDirective implements OnInit{
 
-  // tile value
-  @Input() value: number;
+  // tile
+  @Input() tile: Tile;
 
   // represents the tile's position in the html rows and columns
   @Input() columnIndex: number;
@@ -19,7 +20,7 @@ export class TileDirective implements OnInit{
 
   ngOnInit() {
     // gets index of given value by finding b in 2^b = value
-    const index: number = Math.log(this.value)/Math.log(2);
+    const index: number = Math.log(this.tile.value)/Math.log(2);
     // sets background to the boardService's background array
     this.renderer.setStyle(this.elRef.nativeElement, 'background', this.boardService.colours[index]);
     // adds tile class to nativeElement
@@ -31,42 +32,34 @@ export class TileDirective implements OnInit{
       // sets it so the value "1" doesn't appear on webpage
       this.renderer.setProperty(this.elRef.nativeElement, 'innerHTML', '');
     }
+    // if newly created tile (assigned in boardService)
+    if (this.tile.isNew) {
+      // check game.component.css for details on creation animation
+      this.renderer.addClass(this.elRef.nativeElement, 'create');
+    }
 
     this.setBorders();
   }
 
   setBorders() {
-    // checks if the tile doesn't sit up against the edge of the container; if it doesn't; draw the corresponding border
-    if (this.columnIndex !== 0) {
-      this.renderer.setStyle(this.elRef.nativeElement, 'border-left', 'none');
-    }
-    if (this.columnIndex !== 3) {
-      this.renderer.setStyle(this.elRef.nativeElement, 'border-right', 'none');
-    }
+    // defines border styling, since it's constant
+    const border = '1px solid black';
 
-    if (this.rowIndex !== 0) {
-      this.renderer.setStyle(this.elRef.nativeElement, 'border-top', 'none');
+    // if at top
+    if (this.rowIndex === 0) {
+      this.renderer.setStyle(this.elRef.nativeElement, 'border-top', border);
     }
-    if (this.rowIndex !== 3) {
-      this.renderer.setStyle(this.elRef.nativeElement, 'border-bottom', 'none');
+    // if at bottom
+    if (this.rowIndex === 3) {
+      this.renderer.setStyle(this.elRef.nativeElement, 'border-bottom', border);
     }
-    // ignore this, dumb code. saved it in case it might be useful later.
-    // const siblings: HTMLCollection = this.renderer.parentNode(this.elRef.nativeElement).children;
-    // for (let i = 0; i < siblings.length; i++) {
-    //   console.log(siblings.item(i), this.elRef.nativeElement);
-    //   console.log(siblings.item(i).isEqualNode(this.elRef.nativeElement));
-    // }
-    // if (this.renderer.nextSibling(this.elRef.nativeElement).innerHTML === '') {
-    //   this.renderer.setStyle(this.elRef.nativeElement, 'border-right', 'none');
-    // }
-    // if (this.renderer.parentNode(this.elRef.nativeElement).children[index].innerHTML === '') {
-    //   this.renderer.setStyle(this.elRef.nativeElement, 'border-right', 'none');
-    // }
-
-
-  // @HostListener('click') onClick() {
-  //   console.log('focused on tile', this.columnIndex, this.rowIndex)
-  // }
-
+    // if at left
+    if (this.columnIndex === 0) {
+      this.renderer.setStyle(this.elRef.nativeElement, 'border-left', border);
+    }
+    // if at right
+    if (this.columnIndex === 3) {
+      this.renderer.setStyle(this.elRef.nativeElement, 'border-right', border);
+    }
   }
 }

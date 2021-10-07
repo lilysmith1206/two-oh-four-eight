@@ -23,6 +23,10 @@ export class GameComponent implements OnInit {
     this.boardService.moveTiles($event);
   }
 
+  focusDiv() {
+    document.getElementById('game-container').focus();
+  }
+
   ngOnInit(): void {
   }
 

@@ -1,15 +1,17 @@
 <div *ngFor="let row of tiles;
      let rowIndex = index"
      class="row justify-content-center"
+     (keydown)="test($event)"
+     id="game-container"
+     tabindex="-1"
 >
   <div *ngFor="let tile of row;"
        TileDirective
-       [value]='tile.value'
+       [tile]='tile'
        [rowIndex]='rowIndex'
        [columnIndex]='row.indexOf(tile)'
        class="d-flex align-items-center justify-content-center"
-       tabindex="-1"
-       (keydown)='test($event)'
+       (click)='focusDiv()'
   >
     {{ tile.value }}
   </div>
