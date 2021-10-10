@@ -10,9 +10,9 @@ import { Tile } from './shared/tile.template';
 export class GameComponent implements OnInit {
   //  stores creates local instance of 2d tile array (board)
   tiles: Tile[][];
+  inPlay: boolean = true;
   constructor(private boardService: BoardService) {
-    boardService.createBoard(Math.ceil(Math.random()*3));
-    this.tiles = boardService.board;
+    this.restartGame();
   }
 
   addTile() {
@@ -21,8 +21,16 @@ export class GameComponent implements OnInit {
 
   test($event: KeyboardEvent) {
     this.boardService.moveTiles($event);
+    this.inPlay = this.boardService.userHasMoves();
   }
 
+  restartGame() {
+    this.boardService.createBoard(Math.ceil(Math.random()*3));
+    this.tiles = this.boardService.board;
+    this.boardService.gameLost = false;
+    this.inPlay = true;
+    this.boardService.scoreValue = 0;
+  }
   focusDiv() {
     document.getElementById('game-container').focus();
   }

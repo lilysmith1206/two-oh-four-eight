@@ -16,3 +16,13 @@
     {{ tile.value }}
   </div>
 </div>
+<div class="row">
+  <div class="col-12 d-flex justify-content-center mt-3">
+    <button class="btn btn-info restart-button"
+    RestartDirective
+    [gamePlaying]='inPlay'
+    (click)='restartGame()'>
+    Restart
+    </button>
+  </div>
+</div>
