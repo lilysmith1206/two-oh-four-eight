@@ -3,10 +3,10 @@ import { BrowserModule } from '@angular/platform-browser';
 
 import { AppComponent } from './app.component';
 import { GameComponent } from './game/game.component';
-import { TileDirective } from './game/shared/tile.directive';
-import { RestartDirective } from './game/shared/restart.directive';
+import { TileDirective } from './shared/tile.directive';
+import { RestartDirective } from './shared/restart.directive';
 import { ScoreboardComponent } from './scoreboard/scoreboard.component';
-import { BoardService } from './game/shared/board.service';
+import { BoardService } from './shared/board.service';
 
 @NgModule({
   declarations: [

@@ -24,6 +24,7 @@ button.show {
   display: block;
   position: fixed;
 }
+
 @keyframes initiate {
   from {
     opacity: 0.5;

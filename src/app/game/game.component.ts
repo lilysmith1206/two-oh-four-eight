@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { BoardService } from './shared/board.service';
-import { Tile } from './shared/tile.template';
+import { BoardService } from '../shared/board.service';
+import { Tile } from '../shared/tile.template';
 
 @Component({
   selector: 'app-game',
