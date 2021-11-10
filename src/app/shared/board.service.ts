@@ -46,8 +46,6 @@ export class BoardService {
       this.addTile();
     }
 
-    this.tiles[2][3] = new Tile(false, 2048);
-
     this.tileUpdateEmitter.emit(this.board);
   }
 
