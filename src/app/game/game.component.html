@@ -1,21 +1,21 @@
-<div *ngFor="let row of tiles;
-     let rowIndex = index"
-     class="row justify-content-center"
-     (keydown)="test($event)"
-     id="game-container"
+<div id="game-container"
+     class="row"
+     (keydown)="movement($event)"
      tabindex="-1"
 >
-  <div *ngFor="let tile of row;"
+  <div *ngFor="let tile of tiles; let i = index"
        TileDirective
-       [tile]='tile'
-       [rowIndex]='rowIndex'
-       [columnIndex]='row.indexOf(tile)'
+       [tile]="tile"
+       [rowIndex]='(i / 4) - ( (i % 4) / 4)'
+       [columnIndex]='i % 4'
+       (keydown)="movement($event)"
        class="d-flex align-items-center justify-content-center"
-       (click)='focusDiv()'
   >
     {{ tile.value }}
   </div>
 </div>
+
+
 <div class="row">
   <div class="col-12 d-flex justify-content-center mt-3">
     <button class="btn btn-info restart-button"

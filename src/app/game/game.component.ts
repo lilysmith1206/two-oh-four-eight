@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, SimpleChange, SimpleChanges } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { BoardService } from '../shared/board.service';
 import { Tile } from '../shared/tile.template';
 
@@ -9,33 +10,50 @@ import { Tile } from '../shared/tile.template';
 })
 export class GameComponent implements OnInit {
   //  stores creates local instance of 2d tile array (board)
-  tiles: Tile[][];
+  tileBoard: Tile[][];
+  tiles: Tile[];
+
+  tileListener: Subscription;
+
   inPlay: boolean = true;
+
   constructor(private boardService: BoardService) {
-    this.restartGame();
   }
 
   addTile() {
     this.boardService.addTile();
   }
 
-  test($event: KeyboardEvent) {
+  movement($event: KeyboardEvent) {
     this.boardService.moveTiles($event);
     this.inPlay = this.boardService.userHasMoves();
   }
 
   restartGame() {
+    if (this.tileListener) {
+      this.tileListener.unsubscribe();
+    }
+
+    this.tileListener = this.boardService.tileUpdateEmitter.subscribe( (board) => {
+      this.tileBoard = board;
+      this.tiles = this.tileBoard.reduce( (prev, accum) => prev.concat(accum));
+      console.log(this.tiles);
+    });
+
+
     this.boardService.createBoard(Math.ceil(Math.random()*3));
-    this.tiles = this.boardService.board;
+
     this.boardService.gameLost = false;
     this.inPlay = true;
     this.boardService.scoreValue = 0;
   }
   focusDiv() {
+    console.log('focused');
     document.getElementById('game-container').focus();
   }
 
   ngOnInit(): void {
+    this.restartGame();
   }
 
 }

@@ -6,8 +6,8 @@ export class Tile {
   // sets if tile was created during a merge event during movement
   public hasMerged: boolean = false;
 
-  constructor(public isEmpty: boolean, private initialValue: number) {
-    if (this.isEmpty) {
+  constructor(public isEmpty?: boolean, private initialValue?: number) {
+    if (this.isEmpty === undefined || this.isEmpty) {
       this.value = 1;
     }
     else {

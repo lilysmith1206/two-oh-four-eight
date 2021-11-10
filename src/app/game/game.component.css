@@ -1,11 +1,12 @@
 
 .tile {
-  min-height: 75px;
-  min-width: 75px;
+  height: 75px;
+  width: 75px;
+  user-select: none;
 }
 
 div.create {
-  animation: initiate linear 1 0.5s;
+  animation: initiate linear 1 0.2s;
 }
 
 .empty::after {
@@ -14,6 +15,12 @@ div.create {
 
 div#game-container {
   outline: none;
+  margin: 0 auto;
+  position: relative;
+  width: 302px;
+  height: 302px;
+  border: 1px solid black;
+  background-color: #dddddd;
 }
 
 button.hide {
@@ -27,10 +34,14 @@ button.show {
 
 @keyframes initiate {
   from {
-    opacity: 0.5;
+    opacity: 0.25;
+    width: 35px;
+    height: 35px;
   }
   to {
     opacity: 1;
+    width: 75px;
+    height: 75px;
 
   }
 }

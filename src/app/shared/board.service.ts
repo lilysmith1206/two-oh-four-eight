@@ -8,6 +8,8 @@ export class BoardService {
   // service copy of board of tiles
   tiles: Tile[][];
   score: number = 0;
+
+  tileUpdateEmitter: EventEmitter<Tile[][]> = new EventEmitter();
   // array of hex tile colours; can be gradients, images, whatever. doesn't matter.
   tileBackground: string[] = [
     '#dddddd', // 2^0, or blank cell
@@ -21,7 +23,7 @@ export class BoardService {
     '#ffe866', // 2^8, 256
     '#fff2a6', // 2^9, 512
     '#fff8cf', // 2^10 1024
-    '#ffffff' // 2^11, 2048
+    '#fffbe6' // 2^11, 2048
   ];
 
   gameLost: boolean = false;
@@ -36,13 +38,17 @@ export class BoardService {
     // iterates through board, creates empty tile instances
     for (let i = 0; i < this.tiles.length; i++) {
       for (let j = 0; j < this.tiles[i].length; j++) {
-        this.tiles[i][j] = new Tile(true, -1);
+        this.tiles[i][j] = new Tile(true);
       }
     }
 
     for (let i = 0; i < initialTiles; i++) {
       this.addTile();
     }
+
+    this.tiles[2][3] = new Tile(false, 2048);
+
+    this.tileUpdateEmitter.emit(this.board);
   }
 
   addTile() {
@@ -175,10 +181,15 @@ export class BoardService {
       const loopConfig = movementConfiguration[dir].loop;
       const offset = movementConfiguration[dir].offset;
 
+      this.tiles.forEach( (row) => row.forEach( (tile) => tile.isNew = false));
+
       for (let y = loopConfig.y.start; loopConfig.y.loopTest(y); y += loopConfig.y.modifier) {
         for (let x = loopConfig.x.start; loopConfig.x.loopTest(x); x += loopConfig.x.modifier) {
+
+          if (!this.board[y][x].isEmpty) {
           // runs the moveDirection function with current indices and offset
-          modified = this.moveDirection({y: y, x: x}, offset);
+            modified = this.moveDirection({y: y, x: x}, offset);
+          }
           // switch; if modified is ever true, modifiedBoard is true regardless of whether modified is false
           if (modified) {
             modifiedBoard = true;
@@ -187,13 +198,7 @@ export class BoardService {
       }
       // makes it so this operation is synchronous; i had issues here
       setTimeout(() => {
-        // iterates through tiles
-        for (let y = 0; y < 4; y++) {
-          for (let x = 0; x < 4; x++) {
-            // sets each tile to merged as false, so they can merge in future movements
-            this.tiles[y][x].hasMerged = false;
-          }
-        }
+
         // if the movement succeeded, add a tile to the board
         if (modifiedBoard) {
           this.addTile();
@@ -201,8 +206,14 @@ export class BoardService {
 
         for (let y = 0; y < 4; y++) {
           for(let x = 0; x < 4; x++) {
-            const details: {value: number, isEmpty: boolean} = {value: this.board[y][x].value, isEmpty: this.board[y][x].isEmpty};
+            const tile = this.board[y][x]
+            const details = {
+              value: tile.value,
+              isEmpty: tile.isEmpty,
+              isNew: tile.isNew
+            };
             this.board[y][x] = new Tile(details.isEmpty, details.value);
+            this.board[y][x].isNew = details.isNew;
           }
         }
 
@@ -211,6 +222,9 @@ export class BoardService {
         }
       });
 
+      setTimeout( () => {
+      this.tileUpdateEmitter.emit(this.board);
+      });
     }
     // console.log($event.currentTarget);
   }
@@ -220,36 +234,18 @@ export class BoardService {
 
     for (let y = 0; y < 4; y++) {
       for (let x = 0; x < 4; x++) {
-        let tileOptions: boolean = false;
-        let possTile: Tile;
-        let curTile: Tile = this.board[y][x];
-        if (y > 0) {
-          possTile = this.board[y - 1][x];
-          if (possTile.isEmpty || (possTile.value === curTile.value) && !(curTile.hasMerged || possTile.hasMerged)) {
-            tileOptions = true;
-          }
-        }
-        if (y < 3) {
-            possTile = this.board[y + 1][x];
-            if (possTile.isEmpty || (possTile.value === curTile.value) && !(curTile.hasMerged || possTile.hasMerged)) {
-              tileOptions = true;
-            }
-        }
-        if (x > 0) {
-          possTile = this.board[y][x - 1];
-          if (possTile.isEmpty || (possTile.value === curTile.value) && !(curTile.hasMerged || possTile.hasMerged)) {
-            tileOptions = true;
-          }
-        }
-        if (x < 3) {
-          possTile = this.board[y][x + 1];
-          if (possTile.isEmpty || (possTile.value === curTile.value) && !(curTile.hasMerged || possTile.hasMerged)) {
-            tileOptions = true;
-          }
-        }
+        let tileOptions: (boolean | string) = false;
 
-        if (tileOptions) {
-          movable = true;
+        const offsets = [
+          {x: 0, y: -1},
+          {x: 0, y: 1},
+          {x: 1, y: 0},
+          {x: -1, y: 0}
+        ]
+
+        for (let i = 0; i < offsets.length; i++) {
+          tileOptions = tileOptions ? true : this.movable({y: y, x: x}, offsets[i]);
+          if (tileOptions) { movable = !!tileOptions; break; }
         }
 
       }
@@ -263,17 +259,17 @@ export class BoardService {
 
   movable(pos: {x: number, y: number}, offset: {x: number, y: number}) {
     // checks if the movement is in bounds
-    if (pos.x > -1 && pos.x < 4 && pos.y < 4 && pos.y > -1) {
-      const curTile: Tile = this.board[pos.y - offset.y][pos.x - offset.x];
-      const nextTile: Tile = this.board[pos.y][pos.x];
+    if (pos.x + offset.x > -1 && pos.x + offset.x < 4 && pos.y + offset.y < 4 && pos.y + offset.y > -1) {
+      const nextTile: Tile = this.board[pos.y + offset.y][pos.x + offset.x];
+      const curTile: Tile = this.board[pos.y][pos.x];
       // if the given position is empty, return that it's good to move there
       if (nextTile.isEmpty) {
-        return true;
+        return "empty";
       }
       // checks if the given tile's value and the tile previous in the movement are equal
       if (curTile.value === nextTile.value) {
         // performs a NOR gate operation on the merged values on both tiles
-        return !(nextTile.hasMerged || curTile.hasMerged);
+        return !(nextTile.hasMerged || curTile.hasMerged) ? 'merger' : false;
       }
       return false;
     }
@@ -282,43 +278,49 @@ export class BoardService {
   moveDirection(pos: {y: number, x: number}, offset: {y: number, x: number}) {
     // general movement function, replacing the specific moveUp, moveDown etc functions
     // modifiedBoard boolean for adding a tile
-    let modifiedBoard: boolean = false;
+    let hasModifiedBoard: boolean = false;
 
     // checks if the given position is an empty tile; if it is, don't run this code
-    if (!this.board[pos.y][pos.x].isEmpty) {
-      // sets past position
-      const pPos = {y: pos.y, x: pos.x};
-      // sets future position
-      const cPos = {y: pPos.y + offset.y, x: pPos.x + offset.x};
-      // while the future tile is movable to
-      while (this.movable(cPos, offset)) {
-        // sets that board was modified to true
-        modifiedBoard = true;
-        // checks if the two values of tiles are equal
-        if (this.board[cPos.y][cPos.x].value === this.board[pPos.y][pPos.x].value) {
+    // sets current and future position
+    const cPos = {y: pos.y, x: pos.x};
 
-          // creates a new non-empty that has 2x the value of the current tile
-          this.board[cPos.y][cPos.x] = new Tile(false, this.board[cPos.y][cPos.x].value*2);
+    const fPos = {y: cPos.y + offset.y, x: cPos.x + offset.x};
 
-          this.addValueScoreboard(this.board[cPos.y][cPos.x].value);
-          // sets the new tile to have merged, so it can't continue merging
-          this.board[cPos.y][cPos.x].hasMerged = true;
-        }
-        else {
-          // sets future tile to past tile
-          this.board[cPos.y][cPos.x] = this.board[pPos.y][pPos.x];
-        }
-        // sets past tile to a new empty tile
-        this.board[pPos.y][pPos.x] = new Tile(true, -1);
-        // swaps around coordinates
-        pPos.y = cPos.y;
-        pPos.x = cPos.x;
-        // adds the movement offsets
-        cPos.y += offset.y;
-        cPos.x += offset.x;
+    let canMove = this.movable(cPos, offset);
+    // while the future tile is movable to
+
+    while (canMove) {
+
+      // sets that board was modified to true
+      hasModifiedBoard = true;
+
+      console.log(canMove);
+      // checks if the two values of tiles are equal
+      if (this.board[cPos.y][cPos.x].value === this.board[fPos.y][fPos.x].value) {
+
+        // creates a new non-empty that has 2x the value of the current tile
+        this.board[fPos.y][fPos.x] = new Tile(false, this.board[fPos.y][fPos.x].value*2);
+
+        this.addValueScoreboard(this.board[fPos.y][fPos.x].value);
+        // sets the new tile to have merged, so it can't continue merging
+        this.board[fPos.y][fPos.x].hasMerged = true;
       }
+      else {
+        // sets future tile to past tile
+        this.board[fPos.y][fPos.x] = this.board[cPos.y][cPos.x];
+      }
+      // sets past tile to a new empty tile
+      this.board[cPos.y][cPos.x] = new Tile(true, -1);
+      // swaps around coordinates
+      cPos.y = fPos.y;
+      cPos.x = fPos.x;
+      // adds the movement offsets
+      fPos.y += offset.y;
+      fPos.x += offset.x;
+
+      canMove = this.movable(cPos, offset);
     }
-    return modifiedBoard;
+    return hasModifiedBoard;
   }
 
   addValueScoreboard(value: number) {

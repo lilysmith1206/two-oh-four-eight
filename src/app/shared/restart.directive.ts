@@ -29,7 +29,6 @@ export class RestartDirective implements OnInit {
   }
 
   @HostListener('click') resetButton() {
-    console.log('reset');
     this.renderer.removeClass(this.elRef.nativeElement, 'show');
     this.renderer.addClass(this.elRef.nativeElement, 'hide');
       this.intervalID = setInterval(() => {
