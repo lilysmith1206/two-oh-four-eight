@@ -1,5 +1,4 @@
 import { Directive, Input, Renderer2, ElementRef, OnInit, OnDestroy } from '@angular/core';
-import { Subscriber } from 'rxjs';
 import { BoardService } from './board.service';
 import { MovementService } from './movement.service';
 import { Tile } from './tile.template';``
@@ -97,7 +96,7 @@ export class TileDirective implements OnInit, OnDestroy {
           'width 35px 75px 0.25s linear',
           'height 35px 75px 0.25s linear',
           `left ${this.left + 20}px ${this.left}px 0.25s linear`,
-          `top ${this.top + 20}px ${this.top}px 0.25s linear`,
+          `top ${this.top + 20}px ${this.top}px 0.25s linear`
         ]
       )
     }
@@ -140,5 +139,6 @@ export class TileDirective implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.movementListener.unsubscribe();
+    this.zSetListener.unsubscribe();
   }
 }
