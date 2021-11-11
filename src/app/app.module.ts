@@ -7,6 +7,7 @@ import { TileDirective } from './shared/tile.directive';
 import { RestartDirective } from './shared/restart.directive';
 import { ScoreboardComponent } from './scoreboard/scoreboard.component';
 import { BoardService } from './shared/board.service';
+import { MovementService } from './shared/movement.service';
 
 @NgModule({
   declarations: [
@@ -19,7 +20,7 @@ import { BoardService } from './shared/board.service';
   imports: [
     BrowserModule
   ],
-  providers: [BoardService],
+  providers: [BoardService, MovementService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

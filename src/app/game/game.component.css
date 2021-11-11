@@ -5,10 +5,6 @@
   user-select: none;
 }
 
-div.create {
-  animation: initiate linear 1 0.2s;
-}
-
 .empty::after {
   content: '';
 }
@@ -30,18 +26,4 @@ button.hide {
 button.show {
   display: block;
   position: fixed;
-}
-
-@keyframes initiate {
-  from {
-    opacity: 0.25;
-    width: 35px;
-    height: 35px;
-  }
-  to {
-    opacity: 1;
-    width: 75px;
-    height: 75px;
-
-  }
 }

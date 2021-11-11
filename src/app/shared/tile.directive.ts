@@ -1,13 +1,15 @@
-import { Directive, Input, Renderer2, ElementRef, OnInit } from '@angular/core';
+import { Directive, Input, Renderer2, ElementRef, OnInit, OnDestroy } from '@angular/core';
+import { Subscriber } from 'rxjs';
 import { BoardService } from './board.service';
-import { Tile } from './tile.template';
+import { MovementService } from './movement.service';
+import { Tile } from './tile.template';``
 import * as transition from './transition.min.js'
 
 @Directive({
   selector: '[TileDirective]'
 })
 
-export class TileDirective implements OnInit {
+export class TileDirective implements OnInit, OnDestroy {
 
   // tile
   @Input() tile: Tile;
@@ -16,10 +18,16 @@ export class TileDirective implements OnInit {
   @Input() columnIndex: number;
   @Input() rowIndex: number;
 
+  private movementListener;
+  private zSetListener;
   private left: number;
   private top: number;
 
-  constructor(private renderer: Renderer2, private elRef: ElementRef, private boardService: BoardService) {
+  constructor(private renderer: Renderer2,
+              private elRef: ElementRef,
+              private boardService: BoardService,
+              private movementService: MovementService
+  ) {
     // renderer is renderer, elRef is elRef, etc. generates an instance of BoardService
   }
 
@@ -39,16 +47,62 @@ export class TileDirective implements OnInit {
     }
     // if newly created tile (assigned in boardService)
 
+    // sets dynamic top and left offsets according to tile position on board
+
     this.top = this.rowIndex*75
     this.left = this.columnIndex*75;
 
+    // sets position and z-index
     this.renderer.setStyle(this.el, 'position', 'absolute');
+    this.renderer.setStyle(this.el, 'z-index', 1);
 
-    this.setPositions();
+    this.movementListener = this.movementService.movementEmitters[this.rowIndex][this.columnIndex].subscribe( (directions) => {
+      // for math
+      const movementCoefficients = {top: 1, left: 1};
+      // newPos variable because it was getting UNREADABLE UP IN HERE
+      let newPos = 0;
+      switch (directions.dir) {
+        case 'up':
+          // reverses movement offset for determining new position
+          movementCoefficients.top *= -1;
+        case 'down':
+          // gets new position by offsetting by movement length multiplied by tile height
+          newPos = this.top + movementCoefficients.top * directions.movement.length * 75;
+          transition.begin(this.el, `top ${this.top}px ${newPos}px ease-out ${this.boardService.GLOBAL_CONSTANTS.animationDelay}ms`);
+          break;
+        case 'left':
+          // reverses movement offset for determining new position
+          movementCoefficients.left *= -1;
+        case 'right':
+          // gets new position by offsetting by movement length multiplied by tile width
+          newPos = this.left + (movementCoefficients.left * directions.movement.length * 75);
+          transition.begin(this.el, `left ${this.left}px ${newPos}px ease-out ${this.boardService.GLOBAL_CONSTANTS.animationDelay}ms`);
+        break;
+      }
+      // once movement is done set z-index to 1
+      this.renderer.setStyle(this.el, 'z-index', 1);
+    });
+
+    this.zSetListener = this.movementService.zSetEmitters[this.rowIndex][this.columnIndex].subscribe( (z) => {
+      // just to set all the z-indexes easily.
+      this.renderer.setStyle(this.el, 'z-index', z);
+    })
+
 
     if (this.tile.isNew) {
-      // check game.component.css for details on creation animation
-      this.renderer.addClass(this.elRef.nativeElement, 'create');
+      // starts it out transparent, small, and centered, then grows and makes it opaque.
+      transition.begin(this.el,
+        [
+          'opacity 0.25 1 0.25s linear',
+          'width 35px 75px 0.25s linear',
+          'height 35px 75px 0.25s linear',
+          `left ${this.left + 20}px ${this.left}px 0.25s linear`,
+          `top ${this.top + 20}px ${this.top}px 0.25s linear`,
+        ]
+      )
+    }
+    else {
+      this.setPositions();
     }
   }
 
@@ -82,5 +136,9 @@ export class TileDirective implements OnInit {
 
   get el() {
     return this.elRef.nativeElement;
+  }
+
+  ngOnDestroy(): void {
+    this.movementListener.unsubscribe();
   }
 }

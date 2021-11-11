@@ -37,7 +37,6 @@ export class GameComponent implements OnInit {
     this.tileListener = this.boardService.tileUpdateEmitter.subscribe( (board) => {
       this.tileBoard = board;
       this.tiles = this.tileBoard.reduce( (prev, accum) => prev.concat(accum));
-      console.log(this.tiles);
     });
 
 
@@ -48,7 +47,6 @@ export class GameComponent implements OnInit {
     this.boardService.scoreValue = 0;
   }
   focusDiv() {
-    console.log('focused');
     document.getElementById('game-container').focus();
   }
 
