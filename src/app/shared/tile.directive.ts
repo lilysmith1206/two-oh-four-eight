@@ -58,6 +58,9 @@ export class TileDirective implements OnInit, OnDestroy {
     this.movementListener = this.movementService.movementEmitters[this.rowIndex][this.columnIndex].subscribe( (directions) => {
       // for math
       const movementCoefficients = {top: 1, left: 1};
+      const movementOffset = directions.movement * 75;
+      const delay = this.boardService.GLOBAL_CONSTANTS.animationDelay;
+
       // newPos variable because it was getting UNREADABLE UP IN HERE
       let newPos = 0;
       switch (directions.dir) {
@@ -66,16 +69,16 @@ export class TileDirective implements OnInit, OnDestroy {
           movementCoefficients.top *= -1;
         case 'down':
           // gets new position by offsetting by movement length multiplied by tile height
-          newPos = this.top + movementCoefficients.top * directions.movement.length * 75;
-          transition.begin(this.el, `top ${this.top}px ${newPos}px ease-out ${this.boardService.GLOBAL_CONSTANTS.animationDelay}ms`);
+          newPos = this.top + movementCoefficients.top * movementOffset;
+          transition.begin(this.el, `top ${this.top}px ${newPos}px linear ${delay}ms`);
           break;
         case 'left':
           // reverses movement offset for determining new position
           movementCoefficients.left *= -1;
         case 'right':
           // gets new position by offsetting by movement length multiplied by tile width
-          newPos = this.left + (movementCoefficients.left * directions.movement.length * 75);
-          transition.begin(this.el, `left ${this.left}px ${newPos}px ease-out ${this.boardService.GLOBAL_CONSTANTS.animationDelay}ms`);
+          newPos = this.left + (movementCoefficients.left * movementOffset);
+          transition.begin(this.el, `left ${this.left}px ${newPos}px linear ${delay}ms`);
         break;
       }
       // once movement is done set z-index to 1

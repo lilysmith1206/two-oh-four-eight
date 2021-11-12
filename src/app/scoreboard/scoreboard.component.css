@@ -7,3 +7,8 @@ p#score {
    -1px 1px 0 #000,
     1px 1px 0 #000;
 }
+
+#scopeTopFive {
+  position: absolute;
+  top: 34vh;
+}

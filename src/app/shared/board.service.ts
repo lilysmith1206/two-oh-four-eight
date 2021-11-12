@@ -43,6 +43,7 @@ export class BoardService {
   gameLost: boolean = false;
 
   scoreUpdated = new EventEmitter<number>();
+  gameHasMoves = new EventEmitter<boolean>();
 
   constructor(private movementService: MovementService) {
     // fills tiles 2d array with arrays, representing the game board
@@ -60,6 +61,12 @@ export class BoardService {
     for (let i = 0; i < initialTiles; i++) {
       this.addTile();
     }
+
+    this.tileUpdateEmitter.emit(this.board);
+  }
+
+  setBoard(tiles: Tile[][]) {
+    this.tiles = tiles;
 
     this.tileUpdateEmitter.emit(this.board);
   }
@@ -89,7 +96,7 @@ export class BoardService {
     }
   }
 
-  moveTiles($event: KeyboardEvent) {
+  moveTiles(key: string) {
 
     if (!this.gameLost && this.inputAllowed) {
 
@@ -171,21 +178,25 @@ export class BoardService {
         }
       }
 
-      switch ($event.key.toLocaleLowerCase()) {
+      switch (key.toLocaleLowerCase()) {
         case 'w':
         case 'arrowup':
+        case 'up':
           this.dir = 'up';
         break;
         case 'd':
         case 'arrowright':
+        case 'right':
           this.dir = 'right';
         break;
         case 'a':
         case 'arrowleft':
+        case 'left':
           this.dir = 'left';
         break;
         case 's':
         case 'arrowdown':
+        case 'down':
           this.dir = 'down';
         break;
       }
@@ -241,8 +252,10 @@ export class BoardService {
         }
 
         // does this need explanation
-        if (!this.userHasMoves) {
+        if (!this.userHasMoves()) {
+          console.log('game lost')
           this.gameLost = true;
+          this.gameHasMoves.emit(false);
         }
       });
 
@@ -362,7 +375,7 @@ export class BoardService {
 
     if (movementRecord.length > 0) {
       // only if the movement succeeded, emit the movement info
-      this.movementService.sendAnimationToDirective(this.dir, movementRecord, pos);
+      this.movementService.sendAnimationToDirective(this.dir, movementRecord.length, pos);
     }
 
     return hasModifiedBoard;

@@ -5,7 +5,7 @@ import { EventEmitter, Injectable, OnInit } from '@angular/core';
 })
 export class MovementService implements OnInit {
 
-  public movementEmitters: EventEmitter<{dir: string, movement: string[]}>[][] = [];
+  public movementEmitters: EventEmitter<{dir: string, movement: number}>[][] = [];
   public zSetEmitters: EventEmitter<number>[][] = [];
 
   ngOnInit(): void {
@@ -22,7 +22,7 @@ export class MovementService implements OnInit {
 
   }
 
-  sendAnimationToDirective(dir: string, movement: string[], index: {y: number, x: number}) {
+  sendAnimationToDirective(dir: string, movement: number, index: {y: number, x: number}) {
     this.movementEmitters[index.y][index.x].emit({dir: dir, movement: movement});
   }
 

@@ -15,7 +15,7 @@ div#game-container {
   position: relative;
   width: 302px;
   height: 302px;
-  border: 1px solid black;
+  border: outset 1px black;
   background-color: #dddddd;
 }
 
@@ -26,4 +26,12 @@ button.hide {
 button.show {
   display: block;
   position: fixed;
+}
+
+button.arr {
+  margin: 3px;
+}
+
+@media (min-width: 700px) {
+  button.arr { display: none;}
 }

@@ -1,8 +1,16 @@
 <div id="game-container"
      class="row"
      (keydown)="movement($event)"
+     (mousedown)='onMouseDown()'
+     (mouseup)='onMouseUp()'
+     (mouseleave)='onMouseUp()'
+     (mousemove)="onMouseMove($event)"
      tabindex="-1"
 >
+<!-- (mousedown)='onMouseDown()'
+(mouseup)='onMouseUp()'
+(mouseleave)='onMouseUp()'
+(mousemove)="onMouseMove($event)" -->
   <div *ngFor="let tile of tiles; let i = index"
        TileDirective
        [tile]="tile"
@@ -15,6 +23,12 @@
   </div>
 </div>
 
+<div class="row justify-content-center">
+  <button class="btn btn-secondary arr" (click)='mobileMove("right")'>&rarr;</button>
+  <button class="btn btn-secondary arr" (click)='mobileMove("left")'>&larr;</button>
+  <button class="btn btn-secondary arr" (click)='mobileMove("up")'>&uarr;</button>
+  <button class="btn btn-secondary arr" (click)='mobileMove("down")'>&darr;</button>
+</div>
 
 <div class="row">
   <div class="col-12 d-flex justify-content-center mt-3">
