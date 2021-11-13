@@ -68,6 +68,7 @@ export class GameComponent implements OnInit {
     this.inPlay = true;
     if (window.localStorage.getItem('score')) {
       this.boardService.scoreValue = Number(window.localStorage.getItem('score'));
+      window.localStorage.setItem('score', '0');
     }
     else {
     this.boardService.scoreValue = 0;
