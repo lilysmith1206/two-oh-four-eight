@@ -35,7 +35,7 @@ export class BoardService extends CONSTANTS {
     {backgroundColor: '#FFB216', color: 'black'}, // 2^8, 256
     {backgroundColor: '#FED613', color: 'black'}, // 2^9, 512
     {backgroundColor: '#FCEB09', color: 'black'}, // 2^10 1024
-    {backgroundColor: '#FAFB01', color: 'black'} // 2^11, 2048
+    {backgroundColor: '#F1F50A', color: 'black'} // 2^11, 2048
   ];
 
   gameLost: boolean = false;
