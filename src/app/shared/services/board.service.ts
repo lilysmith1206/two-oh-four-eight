@@ -1,11 +1,12 @@
-import { EventEmitter, Injectable, KeyValueDiffers } from "@angular/core";
+import { EventEmitter, Injectable } from "@angular/core";
 import { MovementService } from "./movement.service";
-import { Tile } from "./tile.template";
+import { Tile } from "../templates/tile.template";
+import { CONSTANTS } from "../libraries/constants";
 
 @Injectable({
   providedIn: 'root'
 })
-export class BoardService {
+export class BoardService extends CONSTANTS {
   // service copy of board of tiles
   tiles: Tile[][];
 
@@ -14,9 +15,6 @@ export class BoardService {
   private dir: string;
 
   // global consts meant to be available to any component that needs it
-  public GLOBAL_CONSTANTS = {
-    animationDelay: 100
-  }
 
   // used to prevent input before animations are completed, it looks weird without this
   public inputAllowed: boolean = true;
@@ -25,19 +23,19 @@ export class BoardService {
   tileUpdateEmitter: EventEmitter<Tile[][]> = new EventEmitter();
 
   // array of hex tile colours; can be gradients, images, whatever.
-  tileBackground: string[] = [
-    '#dddddd', // 2^0, or blank cell
-    '#eeeeee', // 2^1, 2
-    '#ffefc2', // 2^2, 4
-    '#ffce80', // 2^3, 8
-    '#fab548', // 2^4, 16
-    '#ffd103', // 2^5, 32
-    '#ffd900', // 2^6, 64
-    '#ffe138', // 2^7, 128
-    '#ffe866', // 2^8, 256
-    '#fff2a6', // 2^9, 512
-    '#fff8cf', // 2^10 1024
-    '#fffbe6' // 2^11, 2048
+  tileStyles: {backgroundColor: string, color: string}[] = [
+    {backgroundColor: '#DDDDDD', color: 'black'}, // 2^0, or blank cell
+    {backgroundColor: '#FFF7DC', color: 'black'}, // 2^1, 2
+    {backgroundColor: '#FFEBB5', color: 'black'}, // 2^2, 4
+    {backgroundColor: '#FFCE52', color: 'black'}, // 2^3, 8
+    {backgroundColor: '#FFA625', color: 'black'}, // 2^4, 16
+    {backgroundColor: '#FF8117', color: 'white'}, // 2^5, 32
+    {backgroundColor: '#E07020', color: 'white'}, // 2^6, 64
+    {backgroundColor: '#FF7D0F', color: 'white'}, // 2^7, 128
+    {backgroundColor: '#FFB216', color: 'black'}, // 2^8, 256
+    {backgroundColor: '#FED613', color: 'black'}, // 2^9, 512
+    {backgroundColor: '#FCEB09', color: 'black'}, // 2^10 1024
+    {backgroundColor: '#FAFB01', color: 'black'} // 2^11, 2048
   ];
 
   gameLost: boolean = false;
@@ -46,14 +44,16 @@ export class BoardService {
   gameHasMoves = new EventEmitter<boolean>();
 
   constructor(private movementService: MovementService) {
+    super();
     // fills tiles 2d array with arrays, representing the game board
-    this.tiles = [new Array(4),new Array(4),new Array(4),new Array(4)]
+    this.tiles = []
   }
 
   createBoard(initialTiles: number) {
     // iterates through board, creates empty tile instances
-    for (let i = 0; i < this.tiles.length; i++) {
-      for (let j = 0; j < this.tiles[i].length; j++) {
+    for (let i = 0; i < this.CONSTS.board.height; i++) {
+      this.tiles[i] = [];
+      for (let j = 0; j < this.CONSTS.board.width; j++) {
         this.tiles[i][j] = new Tile(true);
       }
     }
@@ -109,12 +109,12 @@ export class BoardService {
             x: {
               modifier: 1,
               start: 0,
-              loopTest: ((val: number) => val < 4)
+              loopTest: ((val: number) => val < this.CONSTS.board.width)
             },
             y: {
               modifier: 1,
               start: 1,
-              loopTest: ((val: number) => val < 4)
+              loopTest: ((val: number) => val < this.CONSTS.board.height)
             },
           },
           offset: {
@@ -127,11 +127,11 @@ export class BoardService {
             x: {
               modifier: 1,
               start: 0,
-              loopTest: ((val: number) => val < 4)
+              loopTest: ((val: number) => val < this.CONSTS.board.width)
             },
             y: {
               modifier: -1,
-              start: 3,
+              start: this.CONSTS.board.height - 1,
               loopTest: ((val: number) => val >= 0)
             }
           },
@@ -145,12 +145,12 @@ export class BoardService {
             x: {
               modifier: 1,
               start: 1,
-              loopTest: ((val: number) => val < 4)
+              loopTest: ((val: number) => val < this.CONSTS.board.width)
             },
             y: {
               modifier: 1,
               start: 0,
-              loopTest: ((val: number) => val < 4)
+              loopTest: ((val: number) => val < this.CONSTS.board.height)
             }
           },
           offset: {
@@ -162,13 +162,13 @@ export class BoardService {
           loop: {
             x: {
               modifier: -1,
-              start: 3,
+              start: this.CONSTS.board.width - 1,
               loopTest: ((val: number) => val >= 0)
             },
             y: {
               modifier: 1,
               start: 0,
-              loopTest: ((val: number) => val < 4)
+              loopTest: ((val: number) => val < this.CONSTS.board.height)
             }
           },
           offset: {
@@ -199,6 +199,7 @@ export class BoardService {
         case 'down':
           this.dir = 'down';
         break;
+        default: return;
       }
       // just for readability, as movementConfiguration[dir].loop.y.start was hell
       const loopConfig = movementConfiguration[this.dir].loop;
@@ -230,8 +231,9 @@ export class BoardService {
           this.addTile();
         }
 
-        for (let y = 0; y < 4; y++) {
-          for(let x = 0; x < 4; x++) {
+        for (let y = 0; y < this.CONSTS.board.height; y++) {
+          for(let x = 0; x < this.CONSTS.board.width; x++) {
+
             // this destroys the old tiles and adds new ones. i'm gonna be real with future me, i got no idea
             // why this is necessary, so just leave it.
             const tile = this.board[y][x]
@@ -253,7 +255,6 @@ export class BoardService {
 
         // does this need explanation
         if (!this.userHasMoves()) {
-          console.log('game lost')
           this.gameLost = true;
           this.gameHasMoves.emit(false);
         }
@@ -264,15 +265,15 @@ export class BoardService {
       setTimeout( () => {
         this.inputAllowed = true;
         this.tileUpdateEmitter.emit(this.board);
-      }, this.GLOBAL_CONSTANTS.animationDelay);
+      }, this.CONSTS.transitions.length);
     }
   }
 
   userHasMoves() {
     let movable: boolean = false;
 
-    for (let y = 0; y < 4; y++) {
-      for (let x = 0; x < 4; x++) {
+    for (let y = 0; y < this.CONSTS.board.height; y++) {
+      for (let x = 0; x < this.CONSTS.board.width; x++) {
         let tileOptions: (boolean | string) = false;
 
         const offsets = [
@@ -306,7 +307,7 @@ export class BoardService {
 
   movable(pos: {x: number, y: number}, offset: {x: number, y: number}) {
     // checks if the movement is in bounds
-    if (pos.x + offset.x > -1 && pos.x + offset.x < 4 && pos.y + offset.y < 4 && pos.y + offset.y > -1) {
+    if (pos.x + offset.x > -1 && pos.x + offset.x < this.CONSTS.board.width && pos.y + offset.y < this.CONSTS.board.height && pos.y + offset.y > -1) {
       // gets the tiles from the board positions, to do comparisons on.
       const nextTile: Tile = this.board[pos.y + offset.y][pos.x + offset.x];
       const curTile: Tile = this.board[pos.y][pos.x];
@@ -391,7 +392,7 @@ export class BoardService {
   }
 
   get colours() {
-    return this.tileBackground.slice();
+    return this.tileStyles.slice();
   }
 
   get scoreValue() {

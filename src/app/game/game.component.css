@@ -1,8 +1,7 @@
 
 .tile {
-  height: 75px;
-  width: 75px;
   user-select: none;
+  border-radius: 2px;
 }
 
 .empty::after {
@@ -13,10 +12,8 @@ div#game-container {
   outline: none;
   margin: 0 auto;
   position: relative;
-  width: 302px;
-  height: 302px;
-  border: outset 1px black;
-  background-color: #dddddd;
+  border: outset 3px #aaa;
+  background-color: #ddd;
 }
 
 button.hide {

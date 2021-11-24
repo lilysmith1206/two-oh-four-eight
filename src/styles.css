@@ -1,1 +1,13 @@
 /* You can add global styles to this file, and also import other style files */
+html.light, body.light {
+  background-color: #faf8ef;
+}
+html.dark, body.dark {
+  background-color: #434138;
+}
+body {
+  position: relative;
+}
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }

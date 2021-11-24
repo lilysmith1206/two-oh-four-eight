@@ -5,17 +5,15 @@
      (mouseup)='onMouseUp()'
      (mouseleave)='onMouseUp()'
      (mousemove)="onMouseMove($event)"
+
      tabindex="-1"
+     gameDirective
 >
-<!-- (mousedown)='onMouseDown()'
-(mouseup)='onMouseUp()'
-(mouseleave)='onMouseUp()'
-(mousemove)="onMouseMove($event)" -->
   <div *ngFor="let tile of tiles; let i = index"
        TileDirective
        [tile]="tile"
-       [rowIndex]='(i / 4) - ( (i % 4) / 4)'
-       [columnIndex]='i % 4'
+       [rowIndex]='getRowIndex(i)'
+       [columnIndex]='getColIndex(i)'
        (keydown)="movement($event)"
        class="d-flex align-items-center justify-content-center"
   >
@@ -25,7 +23,6 @@
 
 <div class="row justify-content-center">
   <button class="btn btn-secondary arr" (click)='mobileMove("up")'>&uarr;</button>
-
 </div>
 <div class="row justify-content-center">
   <button class="btn btn-secondary arr mr-4" (click)='mobileMove("left")'>&larr;</button>
@@ -34,11 +31,11 @@
 <div class="row justify-content-center">
   <button class="btn btn-secondary arr" (click)='mobileMove("down")'>&darr;</button>
 </div>
+
 <div class="row">
   <div class="col-12 d-flex justify-content-center mt-3">
     <button class="btn btn-info restart-button"
-    RestartDirective
-    [gamePlaying]='inPlay'
+    [ngStyle]='{"display": inPlay ? "none" : "block"}'
     (click)='restartGame()'>
     Restart
     </button>

@@ -1,14 +1,15 @@
-import { Component, HostListener, OnInit, SimpleChange, SimpleChanges } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { BoardService } from '../shared/board.service';
-import { Tile } from '../shared/tile.template';
+import { BoardService } from '../shared/services/board.service';
+import { Tile } from '../shared/templates/tile.template';
+import { CONSTANTS } from '../shared/libraries/constants';
 
 @Component({
   selector: 'app-game',
   templateUrl: './game.component.html',
   styleUrls: ['./game.component.css']
 })
-export class GameComponent implements OnInit {
+export class GameComponent extends CONSTANTS implements OnInit {
   //  stores creates local instance of 2d tile array (board)
   tileBoard: Tile[][] = [];
   tiles: Tile[];
@@ -21,7 +22,10 @@ export class GameComponent implements OnInit {
   inPlay: boolean = true;
 
   constructor(private boardService: BoardService) {
+    super();
+    document.getElementsByTagName('body')[0].classList.add('light');
   }
+
 
   addTile() {
     this.boardService.addTile();
@@ -34,6 +38,7 @@ export class GameComponent implements OnInit {
 
   restartGame() {
     this.boardService.gameHasMoves.emit(true);
+
     if (this.tileListener) {
       this.tileListener.unsubscribe();
     }
@@ -43,12 +48,20 @@ export class GameComponent implements OnInit {
       this.tiles = this.tileBoard.reduce( (prev, accum) => prev.concat(accum));
     });
 
-    if (window.localStorage.getItem('restore_data') === 'true') {
-      let game: {isEmpty: boolean, isNew: boolean, hasMerged: boolean, value: number}[][] = JSON.parse(window.localStorage.getItem('game'));
+    let game: {
+      isEmpty:   boolean,
+      isNew:     boolean,
+      hasMerged: boolean,
+      value:     number
+    }[][] = JSON.parse(window.localStorage.getItem('game'));
 
-      for (let y = 0; y < 4; y++) {
+    if (window.localStorage.getItem('restore_data') === 'true'
+     && this.CONSTS.board.width == game[0].length
+     && this.CONSTS.board.height == game.length) {
+
+      for (let y = 0; y < this.CONSTS.board.height; y++) {
         this.tileBoard[y] = [];
-        for (let x = 0; x < 4; x++) {
+        for (let x = 0; x < this.CONSTS.board.width; x++) {
           this.tileBoard[y][x] = new Tile(game[y][x].isEmpty, game[y][x].value);
           this.tileBoard[y][x].hasMerged = game[y][x].hasMerged;
           this.tileBoard[y][x].isNew = false;
@@ -57,22 +70,29 @@ export class GameComponent implements OnInit {
       // console.log(this.tileBoard.map(row => row.map(tile => tile.value)));
       this.boardService.setBoard(this.tileBoard);
 
+      this.inPlay = this.boardService.userHasMoves();
+      this.boardService.gameLost = !this.inPlay;
+
       window.localStorage.setItem('restore_data', 'false');
     }
 
     else {
       this.boardService.createBoard(Math.ceil(Math.random()*3));
+      this.boardService.gameLost = false;
+      this.inPlay = true;
     }
 
-    this.boardService.gameLost = false;
-    this.inPlay = true;
+
     if (window.localStorage.getItem('score')) {
       this.boardService.scoreValue = Number(window.localStorage.getItem('score'));
       window.localStorage.setItem('score', '0');
     }
+
     else {
-    this.boardService.scoreValue = 0;
+      this.boardService.scoreValue = 0;
     }
+
+    this.focusGame();
   }
 
   onMouseDown() {
@@ -116,7 +136,7 @@ export class GameComponent implements OnInit {
     }
   }
 
-  focusDiv() {
+  focusGame() {
     document.getElementById('game-container').focus();
   }
 
@@ -129,6 +149,14 @@ export class GameComponent implements OnInit {
     this.inPlay = this.boardService.userHasMoves();
   }
 
+  getColIndex(i: number): number {
+
+    return Math.floor(i % this.CONSTS.board.width);
+  }
+
+  getRowIndex(i: number): number {
+    return Math.floor(i / this.CONSTS.board.width);
+  }
   @HostListener("window:beforeunload", ["$event"]) unloadHandler(event: Event) {
     window.localStorage.setItem('game', JSON.stringify(this.tileBoard));
     window.localStorage.setItem('restore_data', 'true');

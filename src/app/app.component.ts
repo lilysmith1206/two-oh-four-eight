@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { BoardService } from './shared/board.service';
+import { BoardService } from './shared/services/board.service';
 
 @Component({
   selector: 'app-root',

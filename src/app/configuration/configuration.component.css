@@ -1,0 +1,15 @@
+.vertical-slider {
+  position: relative;
+  right: 35px;
+  top: 8px;
+}
+
+hr {
+  border-top: 1px solid black;
+  display: inline-block;
+  position: relative;
+}
+
+hr.vertical {
+  transform: rotate(90deg);
+}

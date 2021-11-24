@@ -1,25 +1,25 @@
 import { EventEmitter, Injectable, OnInit } from '@angular/core';
+import { CONSTANTS } from '../libraries/constants';
 
 @Injectable({
   providedIn: 'root'
 })
-export class MovementService implements OnInit {
+export class MovementService extends CONSTANTS implements OnInit {
 
   public movementEmitters: EventEmitter<{dir: string, movement: number}>[][] = [];
   public zSetEmitters: EventEmitter<number>[][] = [];
 
   ngOnInit(): void {
 
-    for (let i = 0; i < 4; i++) {
-      this.movementEmitters[i] = [];
-      this.zSetEmitters[i] = [];
+    for (let y = 0; y < this.CONSTS.board.height; y++) {
+      this.movementEmitters[y] = [];
+      this.zSetEmitters[y] = [];
 
-      for (let j = 0; j < 4; j++) {
-        this.movementEmitters[i][j] = new EventEmitter();
-        this.zSetEmitters[i][j] = new EventEmitter();
+      for (let x = 0; x < this.CONSTS.board.width; x++) {
+        this.movementEmitters[y][x] = new EventEmitter();
+        this.zSetEmitters[y][x] = new EventEmitter();
       }
     }
-
   }
 
   sendAnimationToDirective(dir: string, movement: number, index: {y: number, x: number}) {
@@ -31,6 +31,7 @@ export class MovementService implements OnInit {
   }
 
   constructor() {
+    super();
     this.ngOnInit();
   }
 }

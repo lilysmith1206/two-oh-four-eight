@@ -1,6 +1,6 @@
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { BoardService } from '../shared/board.service';
+import { BoardService } from '../shared/services/board.service';
 
 @Component({
   selector: 'app-scoreboard',
@@ -28,13 +28,10 @@ export class ScoreboardComponent implements OnInit, OnDestroy {
 
     if (window.localStorage.getItem('leaderboard')) {
       this.topFive = JSON.parse(window.localStorage.getItem('leaderboard'));
-      console.log(window.localStorage.getItem('leaderboard'));
     }
     else {
-      console.log('initialised to zero');
       this.topFive = [0,0,0,0,0];
     }
-    console.log(window.localStorage.getItem('score'));
     if (window.localStorage.getItem('score')) {
       this.score = Number(window.localStorage.getItem('score'));
       this.boardService.score = this.score;

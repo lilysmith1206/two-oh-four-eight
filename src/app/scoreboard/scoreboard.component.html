@@ -1,8 +1,2 @@
-<div class="row mt-5">
-  <div class="col-12 d-flex justify-content-center">
-    <p id="score">{{ score }}</p>
-  </div>
-</div>
-<div id="scopeTopFive">
-  <p *ngFor="let score of topFive">{{ score }}</p>
-</div>
+<p class="score" style="bottom: 20px;">Score: {{ score }}</p>
+<p class="score">Best: {{ topFive[0] }}</p>
