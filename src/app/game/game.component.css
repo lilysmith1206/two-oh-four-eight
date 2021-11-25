@@ -27,6 +27,8 @@ button.show {
 
 button.arr {
   margin: 3px;
+  width: 3em;
+  height: 3em;
 }
 
 @media (min-width: 700px) {

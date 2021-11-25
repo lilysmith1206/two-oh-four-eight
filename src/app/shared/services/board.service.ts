@@ -29,9 +29,9 @@ export class BoardService extends CONSTANTS {
     {backgroundColor: '#FFEBB5', color: 'black'}, // 2^2, 4
     {backgroundColor: '#FFCE52', color: 'black'}, // 2^3, 8
     {backgroundColor: '#FFA625', color: 'black'}, // 2^4, 16
-    {backgroundColor: '#FF8117', color: 'white'}, // 2^5, 32
+    {backgroundColor: '#DD8117', color: 'white'}, // 2^5, 32
     {backgroundColor: '#E07020', color: 'white'}, // 2^6, 64
-    {backgroundColor: '#FF7D0F', color: 'white'}, // 2^7, 128
+    {backgroundColor: '#EE7D0F', color: 'white'}, // 2^7, 128
     {backgroundColor: '#FFB216', color: 'black'}, // 2^8, 256
     {backgroundColor: '#FED613', color: 'black'}, // 2^9, 512
     {backgroundColor: '#FCEB09', color: 'black'}, // 2^10 1024

@@ -74,8 +74,6 @@ export class GameComponent extends CONSTANTS implements OnInit {
       this.boardService.gameLost = !this.inPlay;
 
       window.localStorage.setItem('restore_data', 'false');
-      this.boardService.tiles[0][0] = new Tile(false, 512);
-      this.boardService.tileUpdateEmitter.emit(this.boardService.tiles);
     }
 
     else {
