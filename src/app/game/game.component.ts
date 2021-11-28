@@ -1,19 +1,22 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, EventEmitter, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { BoardService } from '../shared/services/board.service';
 import { Tile } from '../shared/templates/tile.template';
 import { CONSTANTS } from '../shared/libraries/constants';
+import { ThemeHandlerService } from '../shared/services/theme-handler.service';
+
 
 @Component({
   selector: 'app-game',
   templateUrl: './game.component.html',
   styleUrls: ['./game.component.css']
 })
-export class GameComponent extends CONSTANTS implements OnInit {
-  //  stores creates local instance of 2d tile array (board)
+
+export class GameComponent extends CONSTANTS implements OnInit, OnDestroy {
+
   tileBoard: Tile[][] = [];
   tiles: Tile[];
-
+  isLightMode: boolean = true;
   swipeMoved = false;
 
   tileListener: Subscription;
@@ -21,9 +24,24 @@ export class GameComponent extends CONSTANTS implements OnInit {
 
   inPlay: boolean = true;
 
-  constructor(private boardService: BoardService) {
+  constructor(private boardService: BoardService, private themeHandlerService: ThemeHandlerService) {
     super();
+
     document.getElementsByTagName('body')[0].classList.add('light');
+
+    this.tileListener = this.boardService.boardUpdateEmitter.subscribe( (board) => {
+      this.tileBoard = board;
+      this.tiles = this.tileBoard.reduce( (prev, accum) => prev.concat(accum));
+
+    });
+  }
+
+  ngOnInit(): void {
+    this.restartGame();
+  }
+
+  ngOnDestroy(): void {
+    this.tileListener.unsubscribe();
   }
 
 
@@ -31,22 +49,12 @@ export class GameComponent extends CONSTANTS implements OnInit {
     this.boardService.addTile();
   }
 
-  movement($event: KeyboardEvent) {
-    this.boardService.moveTiles($event.key);
-    this.inPlay = this.boardService.userHasMoves();
+  movement(key: KeyboardEvent) {
+    this.boardService.inputMovementToBoard(key.key);
+    this.inPlay = this.boardService.isBoardMovable();
   }
 
   restartGame() {
-    this.boardService.gameHasMoves.emit(true);
-
-    if (this.tileListener) {
-      this.tileListener.unsubscribe();
-    }
-
-    this.tileListener = this.boardService.tileUpdateEmitter.subscribe( (board) => {
-      this.tileBoard = board;
-      this.tiles = this.tileBoard.reduce( (prev, accum) => prev.concat(accum));
-    });
 
     let game: {
       isEmpty:   boolean,
@@ -67,18 +75,16 @@ export class GameComponent extends CONSTANTS implements OnInit {
           this.tileBoard[y][x].isNew = false;
         }
       }
-      // console.log(this.tileBoard.map(row => row.map(tile => tile.value)));
+
       this.boardService.setBoard(this.tileBoard);
 
-      this.inPlay = this.boardService.userHasMoves();
-      this.boardService.gameLost = !this.inPlay;
+      this.inPlay = this.boardService.isBoardMovable();
 
       window.localStorage.setItem('restore_data', 'false');
     }
 
     else {
-      this.boardService.createBoard(Math.ceil(Math.random()*3));
-      this.boardService.gameLost = false;
+      this.boardService.startGame();
       this.inPlay = true;
     }
 
@@ -140,13 +146,9 @@ export class GameComponent extends CONSTANTS implements OnInit {
     document.getElementById('game-container').focus();
   }
 
-  ngOnInit(): void {
-    this.restartGame();
-  }
-
   mobileMove(dir: string) {
-    this.boardService.moveTiles(dir);
-    this.inPlay = this.boardService.userHasMoves();
+    this.boardService.inputMovementToBoard(dir);
+    this.inPlay = this.boardService.isBoardMovable();
   }
 
   getColIndex(i: number): number {
@@ -157,6 +159,7 @@ export class GameComponent extends CONSTANTS implements OnInit {
   getRowIndex(i: number): number {
     return Math.floor(i / this.CONSTS.board.width);
   }
+
   @HostListener("window:beforeunload", ["$event"]) unloadHandler(event: Event) {
     window.localStorage.setItem('game', JSON.stringify(this.tileBoard));
     window.localStorage.setItem('restore_data', 'true');

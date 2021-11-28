@@ -1,7 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { MatSliderChange } from '@angular/material/slider';
-import { MatMenuModule } from '@angular/material/menu';
-import {MatIconModule} from '@angular/material/icon';
 import { CONSTANTS } from '../shared/libraries/constants';
 
 @Component({

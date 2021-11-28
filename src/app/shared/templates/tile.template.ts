@@ -16,7 +16,7 @@ export class Tile {
       }
       else {
         let randomNum: number = Math.random();
-        if (randomNum < 0.98 ) {
+        if (randomNum < 0.98) {
           this.value = 2;
         }
         else {

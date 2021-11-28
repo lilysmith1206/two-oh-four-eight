@@ -3,7 +3,11 @@ import { BrowserModule } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { MatSliderModule } from '@angular/material/slider'
+import { FormsModule } from '@angular/forms';
+
+import { MatSelectModule } from '@angular/material/select'
+import { MatOption } from '@angular/material/core';
+import { MatFormField } from '@angular/material/form-field';
 
 import { AppComponent } from './app.component';
 import { GameComponent } from './game/game.component';
@@ -30,7 +34,8 @@ import { TileDirective } from './shared/directives/tile.directive';
     BrowserModule,
     ReactiveFormsModule,
     BrowserAnimationsModule,
-    MatSliderModule
+    MatSelectModule,
+    FormsModule
   ],
   providers: [BoardService, MovementService],
   bootstrap: [AppComponent]

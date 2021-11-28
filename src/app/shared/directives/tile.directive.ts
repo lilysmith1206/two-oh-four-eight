@@ -4,6 +4,8 @@ import { MovementService } from '../services/movement.service';
 import { Tile } from '../templates/tile.template';
 import { CONSTANTS } from '../libraries/constants';
 import * as transition from '../libraries/transition.min.js'
+import { Dir } from '../templates/board.template';
+import { Subscription } from 'rxjs';
 
 @Directive({
   selector: '[TileDirective]'
@@ -18,10 +20,13 @@ export class TileDirective extends CONSTANTS implements OnInit, OnDestroy {
   @Input() columnIndex: number;
   @Input() rowIndex: number;
 
-  private movementListener;
-  private zSetListener;
+  private movementListener: Subscription;
+  private zSetListener: Subscription;
+  private themeUpdateListener: Subscription;
+
   private left: number;
   private top: number;
+  private index: number;
 
   constructor(private renderer: Renderer2,
               private elRef: ElementRef,
@@ -34,16 +39,17 @@ export class TileDirective extends CONSTANTS implements OnInit, OnDestroy {
 
   ngOnInit() {
     // gets index of given value by finding b in 2^b = value
-    const index: number = Math.log(this.tile.value)/Math.log(2);
+    this.index = Math.log(this.tile.value)/Math.log(2);
     // sets background to the boardService's background array
-    const styles = this.boardService.colours[index];
+    const styles = this.boardService.colours[this.index];
     for (const prop in styles) {
       this.renderer.setStyle(this.elRef.nativeElement, prop, styles[prop]);
     }
 
     this.renderer.addClass(this.elRef.nativeElement, 'tile');
+    this.renderer.setProperty(this.elRef.nativeElement, 'innerHTML', this.tile.value);
 
-    if (index === 0) {
+    if (this.index === 0) {
       this.renderer.addClass(this.elRef.nativeElement, 'empty');
       // sets it so the value "1" doesn't appear on webpage
       this.renderer.setProperty(this.elRef.nativeElement, 'innerHTML', '');
@@ -64,10 +70,11 @@ export class TileDirective extends CONSTANTS implements OnInit, OnDestroy {
     this.movementListener = this.movementService.movementEmitters[this.rowIndex][this.columnIndex].subscribe( (directions) => {
       // for math
       const movementCoefficients = {top: 1, left: 1};
+      const length = directions.movement.length;
 
       const movementOffset = {
-        width:  directions.movement * this.CONSTS.tiles.width,
-        height: directions.movement * this.CONSTS.tiles.height
+        width:  length * this.CONSTS.tiles.width +  length * this.CONSTS.board.margin,
+        height: length * this.CONSTS.tiles.height + length * this.CONSTS.board.margin
       };
 
       const delay = this.CONSTS.transitions.length;
@@ -76,32 +83,46 @@ export class TileDirective extends CONSTANTS implements OnInit, OnDestroy {
       let newPos = 0;
 
       switch (directions.dir) {
-        case 'up':
+        case Dir.UP:
           // reverses movement offset for determining new position
           movementCoefficients.top *= -1;
-        case 'down':
+        case Dir.DOWN:
           // gets new position by offsetting by movement length multiplied by tile height
           newPos = this.top + movementCoefficients.top * movementOffset.height;
-          transition.begin(this.el, `top ${this.top}px ${newPos}px linear ${delay}ms`);
+
+          if (directions.movement.indexOf('merger') > -1) {
+            setTimeout(() => {this.simulateMergedTile(this)}, delay * length);
+          }
+
+          transition.begin(this.el, `top ${this.top}px ${newPos}px linear ${delay * length}ms`);
           break;
-        case 'left':
+        case Dir.LEFT:
           // reverses movement offset for determining new position
           movementCoefficients.left *= -1;
-        case 'right':
+        case Dir.RIGHT:
           // gets new position by offsetting by movement length multiplied by tile width
           newPos = this.left + (movementCoefficients.left * movementOffset.width);
-          transition.begin(this.el, `left ${this.left}px ${newPos}px linear ${delay}ms`);
+          if (directions.movement.indexOf('merger') > -1) {
+            setTimeout(() => {this.simulateMergedTile(this)}, delay * length);
+          }
+          transition.begin(this.el, `left ${this.left}px ${newPos}px linear ${delay * length}ms`);
         break;
       }
       // once movement is done set z-index to 1
-      this.renderer.setStyle(this.el, 'z-index', 1);
     });
 
     this.zSetListener = this.movementService.zSetEmitters[this.rowIndex][this.columnIndex].subscribe( (z) => {
       // just to set all the z-indexes easily.
       this.renderer.setStyle(this.el, 'z-index', z);
-    })
+    });
 
+    this.themeUpdateListener = this.boardService.themeUpdated.subscribe(() => {
+
+      const styles = this.boardService.colours[this.index];
+      for (const prop in styles) {
+        this.renderer.setStyle(this.elRef.nativeElement, prop, styles[prop]);
+      }
+    })
 
     if (this.tile.isNew) {
       // starts it out transparent, small, and centered, then grows and makes it opaque.
@@ -120,6 +141,17 @@ export class TileDirective extends CONSTANTS implements OnInit, OnDestroy {
     else {
       this.setPositions();
     }
+  }
+
+  simulateMergedTile(directive) {
+    const styles = this.boardService.colours[this.index + 1];
+
+    for (const prop in styles) {
+      this.renderer.setStyle(this.elRef.nativeElement, prop, styles[prop]);
+    }
+
+    this.renderer.setProperty(this.el, 'innerHTML', String(Math.pow(2, this.index + 1)));
+    this.renderer.setStyle(this.el, 'z-index', 30);
   }
 
   setPositions(): void {
@@ -159,5 +191,6 @@ export class TileDirective extends CONSTANTS implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.movementListener.unsubscribe();
     this.zSetListener.unsubscribe();
+    this.themeUpdateListener.unsubscribe();
   }
 }

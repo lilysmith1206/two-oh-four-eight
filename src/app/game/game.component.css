@@ -12,7 +12,6 @@ div#game-container {
   outline: none;
   margin: 0 auto;
   position: relative;
-  border: outset 3px #aaa;
   background-color: #ddd;
 }
 
