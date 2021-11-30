@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
+import { PlatformModule } from '@angular/cdk/platform';
 
 import { MatSelectModule } from '@angular/material/select'
 import { MatOption } from '@angular/material/core';
@@ -35,7 +36,8 @@ import { TileDirective } from './shared/directives/tile.directive';
     ReactiveFormsModule,
     BrowserAnimationsModule,
     MatSelectModule,
-    FormsModule
+    FormsModule,
+    PlatformModule
   ],
   providers: [BoardService, MovementService],
   bootstrap: [AppComponent]

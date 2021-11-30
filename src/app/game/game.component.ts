@@ -4,7 +4,7 @@ import { BoardService } from '../shared/services/board.service';
 import { Tile } from '../shared/templates/tile.template';
 import { CONSTANTS } from '../shared/libraries/constants';
 import { ThemeHandlerService } from '../shared/services/theme-handler.service';
-
+import * as Hammer from '../shared/libraries/hammer.min.js';
 
 @Component({
   selector: 'app-game',
@@ -13,6 +13,7 @@ import { ThemeHandlerService } from '../shared/services/theme-handler.service';
 })
 
 export class GameComponent extends CONSTANTS implements OnInit, OnDestroy {
+
 
   tileBoard: Tile[][] = [];
   tiles: Tile[];
@@ -37,9 +38,33 @@ export class GameComponent extends CONSTANTS implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.setUpMobileInterface();
     this.restartGame();
   }
 
+  setUpMobileInterface() {
+    const hammertime = new Hammer(document.getElementById('game-container'), [Hammer.Swipe,{ direction: Hammer.DIRECTION_HORIZONTAL }]);
+
+    hammertime.get('swipe').set({direction: Hammer.DIRECTION_ALL});
+
+    const v = hammertime.on('swipe', (ev) => { this.getDirectionFromMobile(ev) });
+    console.log(v);
+  }
+
+  componentRef = this;
+
+  getDirectionFromMobile(ev) {
+      let movement = '';
+
+      switch (ev.direction) {
+        case 8: movement = 'up'; break;
+        case 2: movement = 'left'; break;
+        case 16: movement = 'down'; break;
+        case 4: movement = 'right'; break;
+      }
+
+      this.boardService.inputMovementToBoard(movement);
+    }
   ngOnDestroy(): void {
     this.tileListener.unsubscribe();
   }
@@ -63,8 +88,9 @@ export class GameComponent extends CONSTANTS implements OnInit, OnDestroy {
       value:     number
     }[][] = JSON.parse(window.localStorage.getItem('game'));
 
+    console.log(game);
     if (window.localStorage.getItem('restore_data') === 'true'
-     && this.CONSTS.board.width == game[0].length
+     && this.CONSTS.board.width == game[0]?.length
      && this.CONSTS.board.height == game.length) {
 
       for (let y = 0; y < this.CONSTS.board.height; y++) {
@@ -144,6 +170,10 @@ export class GameComponent extends CONSTANTS implements OnInit, OnDestroy {
 
   focusGame() {
     document.getElementById('game-container').focus();
+  }
+
+  test(event) {
+    console.log(event);
   }
 
   mobileMove(dir: string) {

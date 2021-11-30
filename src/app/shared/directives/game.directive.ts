@@ -12,7 +12,7 @@ export class GameDirective extends CONSTANTS implements OnInit, OnDestroy {
   private themeUpdateListener: Subscription;
   private borderColours = {
     'light': '#aaa',
-    'dark': '#888'
+    'dark': '#999'
   };
 
   constructor(private renderer: Renderer2,
