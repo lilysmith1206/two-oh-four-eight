@@ -23,7 +23,7 @@ export class ScoreboardComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.scoreSubscriber = this.boardService.scoreUpdated.subscribe((score: number) =>
     {
-      this.score = score;
+      this.score += score;
     });
 
     if (window.localStorage.getItem('leaderboard')) {
@@ -39,7 +39,6 @@ export class ScoreboardComponent implements OnInit, OnDestroy {
 
     this.scoreStoreListener = this.boardService.gameHasMoves.subscribe( (hasMoves) => {
       if (!hasMoves) {
-        const score = this.boardService.score;
 
         this.topFive.push(this.score);
 

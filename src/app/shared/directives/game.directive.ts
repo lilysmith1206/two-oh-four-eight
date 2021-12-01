@@ -25,14 +25,17 @@ export class GameDirective extends CONSTANTS implements OnInit, OnDestroy {
   ngOnInit(): void {
     const height = this.CONSTS.board.height
       * this.CONSTS.tiles.height
-      + this.CONSTS.board.border * 2
+      + this.CONSTS.board.border * 1.5
       + this.CONSTS.board.margin * this.CONSTS.board.height;
+
     const width = this.CONSTS.board.width
       * this.CONSTS.tiles.width
-      + this.CONSTS.board.border * 2
+      + this.CONSTS.board.border * 1.5
       + this.CONSTS.board.margin * this.CONSTS.board.width;
+
     this.renderer.setStyle(this.el, 'width', width + 'px');
     this.renderer.setStyle(this.el, 'height', height + 'px');
+
     // border: outset 3px #aaa;
     this.renderer.setStyle(this.el, 'border', `outset 3px ${this.borderColours[this.boardService.theme]}`);
 

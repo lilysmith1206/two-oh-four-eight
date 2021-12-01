@@ -91,7 +91,7 @@ export class TileDirective extends CONSTANTS implements OnInit, OnDestroy {
           newPos = this.top + movementCoefficients.top * movementOffset.height;
 
           if (directions.movement.indexOf('merger') > -1) {
-            setTimeout(() => {this.simulateMergedTile(this)}, delay * length);
+            setTimeout(() => {this.simulateMergedTile()}, delay * length);
           }
 
           transition.begin(this.el, `top ${this.top}px ${newPos}px linear ${delay * length}ms`);
@@ -103,7 +103,7 @@ export class TileDirective extends CONSTANTS implements OnInit, OnDestroy {
           // gets new position by offsetting by movement length multiplied by tile width
           newPos = this.left + (movementCoefficients.left * movementOffset.width);
           if (directions.movement.indexOf('merger') > -1) {
-            setTimeout(() => {this.simulateMergedTile(this)}, delay * length);
+            setTimeout(() => {this.simulateMergedTile()}, delay * length);
           }
           transition.begin(this.el, `left ${this.left}px ${newPos}px linear ${delay * length}ms`);
         break;
@@ -143,14 +143,17 @@ export class TileDirective extends CONSTANTS implements OnInit, OnDestroy {
     }
   }
 
-  simulateMergedTile(directive) {
+  simulateMergedTile() {
     const styles = this.boardService.colours[this.index + 1];
 
     for (const prop in styles) {
       this.renderer.setStyle(this.elRef.nativeElement, prop, styles[prop]);
     }
 
-    this.renderer.setProperty(this.el, 'innerHTML', String(Math.pow(2, this.index + 1)));
+    const score = Math.pow(2, this.index + 1);
+    this.boardService.scoreUpdated.emit(score)
+
+    this.renderer.setProperty(this.el, 'innerHTML', String(score));
     this.renderer.setStyle(this.el, 'z-index', 30);
   }
 

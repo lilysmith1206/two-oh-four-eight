@@ -8,7 +8,7 @@ export class CONSTANTS {
       height: 75 // expressed in pixels
     },
     board: {
-      border: 6, // in pixels
+      border: 15, // in pixels
       margin: 3, // the space between each tile
       width: 4, // in tiles
       height: 4 // in tiles
