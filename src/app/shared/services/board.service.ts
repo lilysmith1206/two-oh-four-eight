@@ -1,41 +1,31 @@
-import { EventEmitter, Injectable, OnInit } from "@angular/core";
-import { MovementService } from "./movement.service";
-import { Tile } from "../templates/tile.template";
-import { Board, Dir } from "../templates/board.template";
-import { Subscription } from "rxjs";
-import { ThemeHandlerService } from "./theme-handler.service";
+import { EventEmitter, Injectable, OnInit } from '@angular/core';
+import { MovementService } from './movement.service';
+import { Tile } from '../templates/tile.template';
+import { Board } from '../templates/board.template';
+import { Subject, Subscription } from 'rxjs';
+import { boardStylings, constants } from '../libraries/constants';
+import { Theme, ThemeService } from './theme.service';
+import { tap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
 })
 
-export class BoardService extends Board implements OnInit {
-
-  score: number = 0;
-  theme: string = 'light';
-
-  // global consts meant to be available to any component that needs it
-
-  // used to prevent input before animations are completed, it looks weird without this
-
-  // emitter, to control when the board is updated
-  themeUpdate: Subscription;
+export class BoardService extends Board {
+  theme: Theme = Theme.Light;
 
   boardUpdateEmitter: EventEmitter<Tile[][]> = new EventEmitter();
-  scoreUpdated = new EventEmitter<number>();
-  gameHasMoves = new EventEmitter<boolean>();
-  themeUpdated = new EventEmitter();
+  readonly score = new Subject<number>();
+  readonly gameActive = new Subject<boolean>();
 
-  constructor(private movementService: MovementService, private themeHandler: ThemeHandlerService) {
+  constructor(private movementService: MovementService, private themeService: ThemeService) {
     super();
-    this.ngOnInit();
-  }
 
-  ngOnInit(): void {
-    this.themeUpdate = this.themeHandler.themeUpdated.subscribe( (value) => {
-      this.theme = value;
-      this.themeUpdated.emit();
-    });
+    this.themeService.themeChange.pipe(
+      tap((theme: Theme) => {
+        this.theme = theme;
+      })
+    ).subscribe();
   }
 
   startGame() {
@@ -46,7 +36,7 @@ export class BoardService extends Board implements OnInit {
     if (this.getDirectionFromPressedKey(dir) !== null && this.inputAllowed) {
       let {scoreToBeAdded, movementRecord, direction} = this.moveTiles(dir);
 
-      this.score += scoreToBeAdded;
+      this.score.next(scoreToBeAdded);
 
       for (let y = 0; y < this.height; y++) {
         for (let x = 0; x < this.width; x++) {
@@ -59,19 +49,19 @@ export class BoardService extends Board implements OnInit {
         }
       }
 
-      if (!this.isBoardMovable) {
-        this.gameHasMoves.emit(false);
+      if (!this.isBoardMovable()) {
+        this.gameActive.next(false);
       }
 
       this.inputAllowed = false;
       let arr: string[][] = Object.values(movementRecord);
       let a = Math.max(...arr.map(v => v.length));
-      // const maxTimeWaited: number = this.CONSTS.transitions.length * Math.max(...Object.values(movementRecord).map(v => v.length));
+
       setTimeout( () => {
         this.inputAllowed = true;
         this.boardUpdateEmitter.emit(this.board);
 
-      }, (Number.isFinite(a) ? a : 0) * this.CONSTS.transitions.length + 50); // maxTimeWaited);
+      }, (Number.isFinite(a) ? a : 0) * constants.transitions.length + 50); // maxTimeWaited);
     }
   }
 
@@ -81,21 +71,7 @@ export class BoardService extends Board implements OnInit {
     this.boardUpdateEmitter.emit(this.board);
   }
 
-  addValueScoreboard(value: number) {
-    this.score += value;
-    this.scoreUpdated.emit(this.score);
-  }
-
   get colours() {
-    return this.tileStyles[this.theme].slice();
-  }
-
-  get scoreValue() {
-    return this.score;
-  }
-
-  set scoreValue(scoreVal: number) {
-    this.score = scoreVal;
-    this.scoreUpdated.emit(this.score);
+    return boardStylings[this.theme].slice();
   }
 }

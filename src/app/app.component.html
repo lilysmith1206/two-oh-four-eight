@@ -1,31 +1,18 @@
-<div class="container">
-  <div class="row justify-content-center">
-    <div class="col-10 col-sm-8 col-md-5 mt-2" style="position: relative;" [ngStyle]='{"color": fontColour}'>
-      <h1 style="float: left">
-        Twenty<br>
-        Forty<br>
-        Eight
-      </h1>
-      <h3 style="float: left; clear: left;">
-        2048
-      </h3>
+<div bp="container">
+  <div bp="grid">
+    <div bp="10 offset-2 8@md offset-4@md" [ngStyle]="{'color': fontColour}">
       <app-scoreboard></app-scoreboard>
     </div>
-  </div>
-  <div class="row justify-content-center">
-    <div class="col-12">
+    <div bp="12">
       <app-game>
       </app-game>
       <mat-form-field style="position: absolute; right: 0px">
         <mat-label>Theme</mat-label>
-        <mat-select (selectionChange)="themeHandler($event)" [ngStyle]='{"color": fontColour}'>
+        <mat-select (selectionChange)="themeHandler($event)" [ngStyle]="{'color': fontColour}">
           <mat-option selected value="light" selected>Light Mode</mat-option>
           <mat-option value="dark">Dark Mode</mat-option>
         </mat-select>
       </mat-form-field>
     </div>
-    <!-- <div class="col-3">
-
-    </div> -->
   </div>
 </div>

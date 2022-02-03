@@ -1,12 +1,14 @@
 import { Directive, ElementRef, OnDestroy, OnInit, Renderer2 } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { CONSTANTS } from '../libraries/constants';
+import { tap } from 'rxjs/operators';
+import { constants } from '../libraries/constants';
 import { BoardService } from '../services/board.service';
+import { Theme, ThemeService } from '../services/theme.service';
 
 @Directive({
   selector: '[gameDirective]'
 })
-export class GameDirective extends CONSTANTS implements OnInit, OnDestroy {
+export class GameDirective implements OnInit {
   // width and height based on TILE LENGTH AND HEIGHT AND BOARD LENGTH AND HEIGHT
 
   private themeUpdateListener: Subscription;
@@ -17,33 +19,30 @@ export class GameDirective extends CONSTANTS implements OnInit, OnDestroy {
 
   constructor(private renderer: Renderer2,
     private elRef: ElementRef,
-    private boardService: BoardService
+    private boardService: BoardService,
+    private themeService: ThemeService
   ) {
-    super();
+    this.themeService.themeChange.pipe(
+      tap((theme: Theme) => {
+        this.renderer.setStyle(this.el, 'background-color', this.boardService.colours[0].backgroundColor);
+        this.renderer.setStyle(this.el, 'border', `outset 3px ${this.borderColours[theme]}`);
+      })
+    ).subscribe();
   }
 
   ngOnInit(): void {
-    const height = this.CONSTS.board.height
-      * this.CONSTS.tiles.height
-      + this.CONSTS.board.border * 2
-      + this.CONSTS.board.margin * this.CONSTS.board.height;
-    const width = this.CONSTS.board.width
-      * this.CONSTS.tiles.width
-      + this.CONSTS.board.border * 2
-      + this.CONSTS.board.margin * this.CONSTS.board.width;
+    const height = constants.board.height * constants.tiles.height
+      + constants.board.border * 2
+      + constants.board.margin * (constants.board.height - 2);
+
+    const width = constants.board.width * constants.tiles.width
+      + constants.board.border * 2
+      + constants.board.margin * (constants.board.width - 2);
+    
     this.renderer.setStyle(this.el, 'width', width + 'px');
     this.renderer.setStyle(this.el, 'height', height + 'px');
     // border: outset 3px #aaa;
     this.renderer.setStyle(this.el, 'border', `outset 3px ${this.borderColours[this.boardService.theme]}`);
-
-    this.themeUpdateListener = this.boardService.themeUpdated.subscribe( () => {
-      this.renderer.setStyle(this.el, 'background-color', this.boardService.colours[0].backgroundColor);
-      this.renderer.setStyle(this.el, 'border', `outset 3px ${this.borderColours[this.boardService.theme]}`);
-    })
-  }
-
-  ngOnDestroy(): void {
-    this.themeUpdateListener.unsubscribe();
   }
 
   get el() {

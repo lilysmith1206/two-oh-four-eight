@@ -1,6 +1,5 @@
-import { NULL_EXPR } from "@angular/compiler/src/output/output_ast";
-import { CONSTANTS } from "../libraries/constants";
-import { Tile } from "./tile.template";
+import { constants } from '../libraries/constants';
+import { Tile } from './tile.template';
 
 export enum Dir {
   LEFT = 'left',
@@ -9,24 +8,23 @@ export enum Dir {
   RIGHT = 'right'
 }
 
-abstract class BoardMovementHandler extends CONSTANTS {
-  constructor() {
-    super();
-  }
+abstract class BoardMovementHandler {
+  constructor() {}
 
   protected _board: Tile[][];
+
   protected readonly movementConfiguration = {
     'up': {
       loop: {
         x: {
           modifier: 1,
           start: 0,
-          loopTest: ((val: number) => val < this.CONSTS.board.width)
+          loopTest: ((val: number) => val < constants.board.width)
         },
         y: {
           modifier: 1,
           start: 1,
-          loopTest: ((val: number) => val < this.CONSTS.board.height)
+          loopTest: ((val: number) => val < constants.board.height)
         },
       },
       offset: {
@@ -39,11 +37,11 @@ abstract class BoardMovementHandler extends CONSTANTS {
         x: {
           modifier: 1,
           start: 0,
-          loopTest: ((val: number) => val < this.CONSTS.board.width)
+          loopTest: ((val: number) => val < constants.board.width)
         },
         y: {
           modifier: -1,
-          start: this.CONSTS.board.height - 1,
+          start: constants.board.height - 1,
           loopTest: ((val: number) => val >= 0)
         }
       },
@@ -57,12 +55,12 @@ abstract class BoardMovementHandler extends CONSTANTS {
         x: {
           modifier: 1,
           start: 1,
-          loopTest: ((val: number) => val < this.CONSTS.board.width)
+          loopTest: ((val: number) => val < constants.board.width)
         },
         y: {
           modifier: 1,
           start: 0,
-          loopTest: ((val: number) => val < this.CONSTS.board.height)
+          loopTest: ((val: number) => val < constants.board.height)
         }
       },
       offset: {
@@ -74,13 +72,13 @@ abstract class BoardMovementHandler extends CONSTANTS {
       loop: {
         x: {
           modifier: -1,
-          start: this.CONSTS.board.width - 1,
+          start: constants.board.width - 1,
           loopTest: ((val: number) => val >= 0)
         },
         y: {
           modifier: 1,
           start: 0,
-          loopTest: ((val: number) => val < this.CONSTS.board.height)
+          loopTest: ((val: number) => val < constants.board.height)
         }
       },
       offset: {
@@ -117,7 +115,7 @@ abstract class BoardMovementHandler extends CONSTANTS {
           scoreToBeAdded += score;
 
           if (hasModifiedBoard) {
-            movementRecord[y * this.CONSTS.board.height + x] = tileMoves;
+            movementRecord[y * constants.board.height + x] = tileMoves;
           }
           modifiedBoard = hasModifiedBoard || modifiedBoard;
         }
@@ -137,8 +135,8 @@ abstract class BoardMovementHandler extends CONSTANTS {
   }
 
     recreateBoard() {
-      for (let y = 0; y < this.CONSTS.board.height; y++) {
-        for (let x = 0; x < this.CONSTS.board.width; x++) {
+      for (let y = 0; y < constants.board.height; y++) {
+        for (let x = 0; x < constants.board.width; x++) {
           const tileDetails = {
             new: this._board[y][x].isNew,
             empty: this._board[y][x].isEmpty,
@@ -163,12 +161,12 @@ abstract class BoardMovementHandler extends CONSTANTS {
     let score = 0;
 
     // sets current and future position
-    const cPos = {y: y, x: x};
+    const currentPosition = {y: y, x: x};
 
-    const fPos = {y: y + offset.y, x: x + offset.x};
+    const futurePosition = {y: y + offset.y, x: x + offset.x};
 
     // stores whether the next tile is movable to
-    let canMove = this.movable(cPos, offset);
+    let canMove = this.movable(currentPosition, offset);
 
     while (canMove) {
 
@@ -178,28 +176,28 @@ abstract class BoardMovementHandler extends CONSTANTS {
       switch (canMove) {
         case 'merger':
           // sets the next tile to have twice the value as the current one
-          this._board[fPos.y][fPos.x] = new Tile(false, this._board[fPos.y][fPos.x].value*2);
+          this._board[futurePosition.y][futurePosition.x] = new Tile(false, this._board[futurePosition.y][futurePosition.x].value*2);
 
-          score = this._board[fPos.y][fPos.x].value * 2;
+          score = this._board[futurePosition.y][futurePosition.x].value;
 
           // sets the new tile to have merged, so it can't continue merging
-          this._board[fPos.y][fPos.x].hasMerged = true;
+          this._board[futurePosition.y][futurePosition.x].hasMerged = true;
         break;
         case 'empty':
           // just moves the tile
-          this._board[fPos.y][fPos.x] = this._board[cPos.y][cPos.x];
+          this._board[futurePosition.y][futurePosition.x] = this._board[currentPosition.y][currentPosition.x];
         break;
       }
       // sets past tile to empty tile
-      this._board[cPos.y][cPos.x] = new Tile(true);
+      this._board[currentPosition.y][currentPosition.x] = new Tile(true);
       // swaps around coordinates
-      cPos.y = fPos.y;
-      cPos.x = fPos.x;
+      currentPosition.y = futurePosition.y;
+      currentPosition.x = futurePosition.x;
       // adds the movement offsets
-      fPos.y += offset.y;
-      fPos.x += offset.x;
+      futurePosition.y += offset.y;
+      futurePosition.x += offset.x;
       // resets the variable so no infinite loop
-      canMove = this.movable(cPos, offset);
+      canMove = this.movable(currentPosition, offset);
     }
 
     return {hasModifiedBoard, tileMoves, score}
@@ -211,35 +209,31 @@ abstract class BoardMovementHandler extends CONSTANTS {
       case 'arrowup':
       case 'up':
         return Dir.UP
-      break;
       case 'd':
       case 'arrowright':
       case 'right':
         return Dir.RIGHT
-      break;
       case 'a':
       case 'arrowleft':
       case 'left':
         return Dir.LEFT;
-      break;
       case 's':
       case 'arrowdown':
       case 'down':
         return Dir.DOWN;
-      break;
       default: return null;
     }
   }
 
   movable(pos: {x: number, y: number}, offset: {x: number, y: number}) {
     // checks if the movement is in bounds
-    if (pos.x + offset.x > -1 && pos.x + offset.x < this.CONSTS.board.width && pos.y + offset.y < this.CONSTS.board.height && pos.y + offset.y > -1) {
+    if (pos.x + offset.x > -1 && pos.x + offset.x < constants.board.width && pos.y + offset.y < constants.board.height && pos.y + offset.y > -1) {
       // gets the tiles from the board positions, to do comparisons on.
       const nextTile: Tile = this._board[pos.y + offset.y][pos.x + offset.x];
       const curTile: Tile = this._board[pos.y][pos.x];
       // if the next tile is empty, it's good to move there.
       if (nextTile.isEmpty) {
-        return "empty";
+        return 'empty';
       }
       // checks if the both tiles have the same value
       if (curTile.value === nextTile.value) {
@@ -257,42 +251,12 @@ export class Board extends BoardMovementHandler {
 
   protected width: number;
   protected height: number;
-  protected tileStyles = {
-    light: [
-      {backgroundColor: '#DDDDDD', color: 'black'}, // 2^0, or blank cell
-      {backgroundColor: '#FFF7DC', color: 'black'}, // 2^1, 2
-      {backgroundColor: '#FFEBB5', color: 'black'}, // 2^2, 4
-      {backgroundColor: '#FFCE52', color: 'black'}, // 2^3, 8
-      {backgroundColor: '#FFA625', color: 'black'}, // 2^4, 16
-      {backgroundColor: '#DD8117', color: 'white'}, // 2^5, 32
-      {backgroundColor: '#E07020', color: 'white'}, // 2^6, 64
-      {backgroundColor: '#EE7D0F', color: 'white'}, // 2^7, 128
-      {backgroundColor: '#FFB216', color: 'black'}, // 2^8, 256
-      {backgroundColor: '#FED613', color: 'black'}, // 2^9, 512
-      {backgroundColor: '#FCEB09', color: 'black'}, // 2^10 1024
-      {backgroundColor: '#F1F50A', color: 'black'} // 2^11, 2048
-    ],
-    dark: [
-        {backgroundColor: 'hsl(0, 0%, 17%)', color: 'black'}, // 2^0, or blank cell
-        {backgroundColor: 'hsl(46, 100%, 73%)', color: 'black'}, // 2^1, 2
-        {backgroundColor: 'hsl(44, 100%, 65%)', color: 'black'}, // 2^2, 4
-        {backgroundColor: 'hsl(43, 100%, 46%)', color: 'white'}, // 2^3, 8
-        {backgroundColor: 'hsl(36, 100%, 37%)', color: 'white'}, // 2^4, 16
-        {backgroundColor: 'hsl(32, 81%, 28%)', color: 'white'}, // 2^5, 32
-        {backgroundColor: 'hsl(25, 76%, 30%)', color: 'white'}, // 2^6, 64
-        {backgroundColor: 'hsl(30, 88%, 30%)', color: 'white'}, // 2^7, 128
-        {backgroundColor: 'hsl(40, 100%, 34%)', color: 'white'}, // 2^8, 256
-        {backgroundColor: 'hsl(50, 99%, 34%)', color: 'white'}, // 2^9, 512
-        {backgroundColor: 'hsl(56, 98%, 31%)', color: 'white'}, // 2^10 1024
-        {backgroundColor: 'hsl(61, 92%, 30%)', color: 'white'} // 2^11, 2048
-    ]
-  };
 
-  constructor(public w?: number, public h?: number) {
+  constructor(width?: number, height?: number) {
     super();
 
-    this.width = w  ?? this.CONSTS.board.width;
-    this.height = h ?? this.CONSTS.board.height;
+    this.width = width ?? constants.board.width;
+    this.height = height ?? constants.board.height;
   }
 
   createStarterBoard(beginningTileAmount: number) {
@@ -324,10 +288,10 @@ export class Board extends BoardMovementHandler {
 
     if (emptyIndices.length > 0) {
       // generates a random index from the emptyIndices array and stores it in rngCoords
-      const randomEmptyPosition: {x: number, y: number} = emptyIndices[Math.floor(Math.random()*emptyIndices.length)];
+      const randomEmptyPositionition: {x: number, y: number} = emptyIndices[Math.floor(Math.random()*emptyIndices.length)];
       // creates a new random tile that is not empty at given coordinates
-      this._board[randomEmptyPosition.y][randomEmptyPosition.x] = new Tile(false);
-      this._board[randomEmptyPosition.y][randomEmptyPosition.x].isNew = true;
+      this._board[randomEmptyPositionition.y][randomEmptyPositionition.x] = new Tile(false);
+      this._board[randomEmptyPositionition.y][randomEmptyPositionition.x].isNew = true;
     }
   }
 
@@ -350,8 +314,8 @@ export class Board extends BoardMovementHandler {
   isBoardMovable() {
     let movable: boolean = false;
 
-    for (let y = 0; y < this.CONSTS.board.height; y++) {
-      for (let x = 0; x < this.CONSTS.board.width; x++) {
+    for (let y = 0; y < constants.board.height; y++) {
+      for (let x = 0; x < constants.board.width; x++) {
         let tileOptions: (boolean | string) = false;
 
         const offsets = [

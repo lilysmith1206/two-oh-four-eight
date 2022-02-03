@@ -1,9 +1,9 @@
 <!--
-<mat-slider id="vertical" thumbLabel (input)='test($event)' class="vertical-slider" vertical min="2" max="8" value="4" step="1"></mat-slider>
-<hr class="vertical" [width]='height' style="top: 62px;"/>
-<hr [width]='width' style="right: 86px;"/>
+<mat-slider id="vertical" thumbLabel (input)="test($event)" class="vertical-slider" vertical min="2" max="8" value="4" step="1"></mat-slider>
+<hr class="vertical" [width]="height" style="top: 62px;"/>
+<hr [width]="width" style="right: 86px;"/>
 
-<mat-slider id="horizontal" thumbLabel min="2" max="8" value="4" step="1" (input)='test($event)'></mat-slider>
+<mat-slider id="horizontal" thumbLabel min="2" max="8" value="4" step="1" (input)="test($event)"></mat-slider>
 
 <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Example icon-button with a menu">
   <mat-icon>more_vert</mat-icon>

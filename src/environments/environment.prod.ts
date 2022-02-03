@@ -1,3 +1,4 @@
 export const environment = {
-  production: true
+  production: true,
+  NODE_VERSION: '16.13.2'
 };

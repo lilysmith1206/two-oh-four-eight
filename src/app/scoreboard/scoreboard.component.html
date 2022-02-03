@@ -1,2 +1,18 @@
-<p class="score" style="bottom: 20px;">Score: {{ score }}</p>
-<p class="score">Best: {{ topFive[0] }}</p>
+<div bp="grid margin-top">
+  <div bp="3 2@md">
+    <h1>
+      Twenty<br>
+      Forty<br>
+      Eight
+    </h1>
+    <h3>
+      2048
+    </h3>
+  </div>
+  <div bp="3 offset-12 2@md offset-8@md">
+    <div style="padding-top: 80%;">
+      <p style="bottom: 20px;">Score: {{ displayedScore }}</p>
+      <p>Best: {{ highScore }}</p>
+    </div>
+  </div>
+</div>

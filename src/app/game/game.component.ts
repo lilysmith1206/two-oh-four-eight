@@ -2,8 +2,8 @@ import { Component, EventEmitter, HostListener, OnDestroy, OnInit } from '@angul
 import { Subscription } from 'rxjs';
 import { BoardService } from '../shared/services/board.service';
 import { Tile } from '../shared/templates/tile.template';
-import { CONSTANTS } from '../shared/libraries/constants';
-import { ThemeHandlerService } from '../shared/services/theme-handler.service';
+import { constants } from '../shared/libraries/constants';
+import { ThemeService } from '../shared/services/theme.service';
 import * as Hammer from '../shared/libraries/hammer.min.js';
 
 @Component({
@@ -12,9 +12,7 @@ import * as Hammer from '../shared/libraries/hammer.min.js';
   styleUrls: ['./game.component.css']
 })
 
-export class GameComponent extends CONSTANTS implements OnInit, OnDestroy {
-
-
+export class GameComponent implements OnInit, OnDestroy {
   tileBoard: Tile[][] = [];
   tiles: Tile[];
   isLightMode: boolean = true;
@@ -25,15 +23,12 @@ export class GameComponent extends CONSTANTS implements OnInit, OnDestroy {
 
   inPlay: boolean = true;
 
-  constructor(private boardService: BoardService, private themeHandlerService: ThemeHandlerService) {
-    super();
-
+  constructor(private boardService: BoardService, private themeService: ThemeService) {
     document.getElementsByTagName('body')[0].classList.add('light');
 
     this.tileListener = this.boardService.boardUpdateEmitter.subscribe( (board) => {
       this.tileBoard = board;
-      this.tiles = this.tileBoard.reduce( (prev, accum) => prev.concat(accum));
-
+      this.tiles = this.tileBoard.reduce((prev, accum) => prev.concat(accum));
     });
   }
 
@@ -48,7 +43,6 @@ export class GameComponent extends CONSTANTS implements OnInit, OnDestroy {
     hammertime.get('swipe').set({direction: Hammer.DIRECTION_ALL});
 
     const v = hammertime.on('swipe', (ev) => { this.getDirectionFromMobile(ev) });
-    console.log(v);
   }
 
   componentRef = this;
@@ -87,15 +81,14 @@ export class GameComponent extends CONSTANTS implements OnInit, OnDestroy {
       hasMerged: boolean,
       value:     number
     }[][] = JSON.parse(window.localStorage.getItem('game'));
-
-    console.log(game);
+    
     if (window.localStorage.getItem('restore_data') === 'true'
-     && this.CONSTS.board.width == game[0]?.length
-     && this.CONSTS.board.height == game.length) {
+     && constants.board.width == game[0]?.length
+     && constants.board.height == game.length) {
 
-      for (let y = 0; y < this.CONSTS.board.height; y++) {
+      for (let y = 0; y < constants.board.height; y++) {
         this.tileBoard[y] = [];
-        for (let x = 0; x < this.CONSTS.board.width; x++) {
+        for (let x = 0; x < constants.board.width; x++) {
           this.tileBoard[y][x] = new Tile(game[y][x].isEmpty, game[y][x].value);
           this.tileBoard[y][x].hasMerged = game[y][x].hasMerged;
           this.tileBoard[y][x].isNew = false;
@@ -113,17 +106,6 @@ export class GameComponent extends CONSTANTS implements OnInit, OnDestroy {
       this.boardService.startGame();
       this.inPlay = true;
     }
-
-
-    if (window.localStorage.getItem('score')) {
-      this.boardService.scoreValue = Number(window.localStorage.getItem('score'));
-      window.localStorage.setItem('score', '0');
-    }
-
-    else {
-      this.boardService.scoreValue = 0;
-    }
-
     this.focusGame();
   }
 
@@ -172,27 +154,13 @@ export class GameComponent extends CONSTANTS implements OnInit, OnDestroy {
     document.getElementById('game-container').focus();
   }
 
-  test(event) {
-    console.log(event);
-  }
-
   mobileMove(dir: string) {
     this.boardService.inputMovementToBoard(dir);
     this.inPlay = this.boardService.isBoardMovable();
   }
 
-  getColIndex(i: number): number {
-
-    return Math.floor(i % this.CONSTS.board.width);
-  }
-
-  getRowIndex(i: number): number {
-    return Math.floor(i / this.CONSTS.board.width);
-  }
-
-  @HostListener("window:beforeunload", ["$event"]) unloadHandler(event: Event) {
+  @HostListener('window:beforeunload', ['$event']) unloadHandler(event: Event) {
     window.localStorage.setItem('game', JSON.stringify(this.tileBoard));
     window.localStorage.setItem('restore_data', 'true');
   }
-
 }

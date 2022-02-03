@@ -7,8 +7,6 @@ import { FormsModule } from '@angular/forms';
 import { PlatformModule } from '@angular/cdk/platform';
 
 import { MatSelectModule } from '@angular/material/select'
-import { MatOption } from '@angular/material/core';
-import { MatFormField } from '@angular/material/form-field';
 
 import { AppComponent } from './app.component';
 import { GameComponent } from './game/game.component';

@@ -1,5 +1,5 @@
-import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { Component, HostListener, OnInit } from '@angular/core';
+import { tap } from 'rxjs/operators';
 import { BoardService } from '../shared/services/board.service';
 
 @Component({
@@ -7,58 +7,82 @@ import { BoardService } from '../shared/services/board.service';
   templateUrl: './scoreboard.component.html',
   styleUrls: ['./scoreboard.component.css']
 })
-export class ScoreboardComponent implements OnInit, OnDestroy {
-  public scoreSubscriber: Subscription;
-  private scoreStoreListener: Subscription;
-  public topFive: number[] = [];
+export class ScoreboardComponent implements OnInit {
+  highScore: number = 0;
+  displayedScore: number;
+  readonly scoreIncrementTimer: {
+    incrementAmount: number,
+    loopedThrough: number,
+    id: any;
+  } = {
+    incrementAmount: -1,
+    loopedThrough: 0,
+    id: -1
+  };
+  
+  private currentScore: number = 0;
 
-  score: number = 0;
-  constructor(private boardService: BoardService) {
-    // this.ngOnInit()
+  constructor(private boardService: BoardService) {}
 
-  }
+  ngOnInit() {
+    this.boardService.score.pipe(
+      tap(score => {
+        this.currentScore += score;
+        this.incrementScore(score);
+      })
+    ).subscribe();
 
-
-
-  ngOnInit(): void {
-    this.scoreSubscriber = this.boardService.scoreUpdated.subscribe((score: number) =>
-    {
-      this.score = score;
-    });
-
-    if (window.localStorage.getItem('leaderboard')) {
-      this.topFive = JSON.parse(window.localStorage.getItem('leaderboard'));
+    if (window.localStorage.getItem('high-score')) {
+      this.highScore = Number(window.localStorage.getItem('high-score'));
     }
     else {
-      this.topFive = [0,0,0,0,0];
+      this.highScore = 0;
     }
+
     if (window.localStorage.getItem('score')) {
-      this.score = Number(window.localStorage.getItem('score'));
-      this.boardService.score = this.score;
+      this.currentScore = Number(window.localStorage.getItem('score'));
+      this.displayedScore = this.currentScore;
     }
 
-    this.scoreStoreListener = this.boardService.gameHasMoves.subscribe( (hasMoves) => {
-      if (!hasMoves) {
-        const score = this.boardService.score;
+    this.boardService.gameActive.pipe(
+      tap(gameActive => {
+        if (!gameActive && this.currentScore > this.highScore) {
+          window.localStorage.setItem('high-score', String(this.currentScore));
+        }
+        this.currentScore = 0;
+        this.displayedScore = 0;
+      })
+    ).subscribe();
+  }
 
-        this.topFive.push(this.score);
+  incrementScore(score: number) {
+    if (this.scoreIncrementTimer.id !== -1) {
+      clearInterval(this.scoreIncrementTimer.id);
+      this.scoreIncrementTimer.incrementAmount = this.currentScore - this.displayedScore + (score / 4);
+    }
+    else {
+      this.scoreIncrementTimer.incrementAmount = score / 4;
+    }
 
-        this.topFive.sort((a, b) => (b - a));
-
-        this.topFive.pop();
-
-        window.localStorage.setItem('leaderboard', JSON.stringify(this.topFive));
+    this.scoreIncrementTimer.id = setInterval(() => {
+      if (this.scoreIncrementTimer.loopedThrough < 4) {
+        this.displayedScore += this.scoreIncrementTimer.incrementAmount;
+        if (this.highScore < this.displayedScore) {
+          this.highScore = this.displayedScore;
+        }
+        this.scoreIncrementTimer.loopedThrough++;
       }
-    })
+      else {
+        clearInterval(this.scoreIncrementTimer.id);
+        this.scoreIncrementTimer.loopedThrough = 0;
+        this.scoreIncrementTimer.id = -1;
+      }
+    }, 50); 
   }
 
-  ngOnDestroy(): void {
-    this.scoreStoreListener.unsubscribe();
-  }
-
-  @HostListener("window:beforeunload", ["$event"]) unloadHandler(event: Event) {
-    window.localStorage.setItem('leaderboard', JSON.stringify(this.topFive.sort( (a, b) => (b - a))));
-    window.localStorage.setItem('score', String(this.boardService.score));
+  @HostListener('window:beforeunload', ['$event']) unloadHandler(event: Event) {
+    window.localStorage.setItem('high-score', String(this.highScore));
+    window.localStorage.setItem('score', String(this.currentScore));
   }
 
 }

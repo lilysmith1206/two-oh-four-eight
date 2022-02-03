@@ -2,139 +2,115 @@ import { Directive, Input, Renderer2, ElementRef, OnInit, OnDestroy } from '@ang
 import { BoardService } from '../services/board.service';
 import { MovementService } from '../services/movement.service';
 import { Tile } from '../templates/tile.template';
-import { CONSTANTS } from '../libraries/constants';
 import * as transition from '../libraries/transition.min.js'
 import { Dir } from '../templates/board.template';
 import { Subscription } from 'rxjs';
+import { boardStylings, constants } from '../libraries/constants';
+import { ThemeService } from '../services/theme.service';
+import { startWith, tap } from 'rxjs/operators';
 
 @Directive({
   selector: '[TileDirective]'
 })
 
-export class TileDirective extends CONSTANTS implements OnInit, OnDestroy {
-
-  // tile
+export class TileDirective implements OnInit, OnDestroy {
   @Input() tile: Tile;
-
-  // represents the tile's position in the html rows and columns
-  @Input() columnIndex: number;
-  @Input() rowIndex: number;
+  @Input() index: number;
 
   private movementListener: Subscription;
   private zSetListener: Subscription;
-  private themeUpdateListener: Subscription;
 
   private left: number;
   private top: number;
-  private index: number;
 
-  constructor(private renderer: Renderer2,
-              private elRef: ElementRef,
-              private boardService: BoardService,
-              private movementService: MovementService
-  ) {
-    super();
-    // renderer is renderer, elRef is elRef, etc. generates an instance of BoardService
-  }
+  constructor(
+    private renderer: Renderer2,
+    private elRef: ElementRef,
+    private boardService: BoardService,
+    private movementService: MovementService,
+    private themeService: ThemeService
+    ) {
+      this.themeService.themeChange.pipe(
+        startWith(this.boardService.theme),
+        tap(() => this.styleGameTile())
+      ).subscribe();
+    }
 
   ngOnInit() {
-    // gets index of given value by finding b in 2^b = value
-    this.index = Math.log(this.tile.value)/Math.log(2);
-    // sets background to the boardService's background array
-    const styles = this.boardService.colours[this.index];
-    for (const prop in styles) {
-      this.renderer.setStyle(this.elRef.nativeElement, prop, styles[prop]);
+    this.styleGameTile();
+
+    if (this.tile.value === 1) {
+      this.renderer.addClass(this.el, 'empty');
+
+      this.renderer.setProperty(this.el, 'innerHTML', '');
     }
 
-    this.renderer.addClass(this.elRef.nativeElement, 'tile');
-    this.renderer.setProperty(this.elRef.nativeElement, 'innerHTML', this.tile.value);
-
-    if (this.index === 0) {
-      this.renderer.addClass(this.elRef.nativeElement, 'empty');
-      // sets it so the value "1" doesn't appear on webpage
-      this.renderer.setProperty(this.elRef.nativeElement, 'innerHTML', '');
-    }
-    // sets dynamic top and left offsets according to tile position on board
-
-    this.top = this.rowIndex * this.CONSTS.tiles.height
-      + this.CONSTS.board.border / 2
-      + this.rowIndex * this.CONSTS.board.margin;
-    this.left = this.columnIndex * this.CONSTS.tiles.width
-      + this.CONSTS.board.border / 2
-      + this.columnIndex * this.CONSTS.board.margin;
+    this.top = this.rowIndex * (constants.tiles.height + constants.board.margin)
+      + (constants.board.border / 2);
+    this.left = this.columnIndex * (constants.tiles.width + constants.board.margin)
+      + (constants.board.border / 2);
 
     // sets position and z-index
     this.renderer.setStyle(this.el, 'position', 'absolute');
     this.renderer.setStyle(this.el, 'z-index', 1);
 
-    this.movementListener = this.movementService.movementEmitters[this.rowIndex][this.columnIndex].subscribe( (directions) => {
-      // for math
-      const movementCoefficients = {top: 1, left: 1};
+    this.movementListener = this.movementService.movementEmitters[this.rowIndex][this.columnIndex].subscribe(directions => {
       const length = directions.movement.length;
+      const delay = constants.transitions.length;
 
       const movementOffset = {
-        width:  length * this.CONSTS.tiles.width +  length * this.CONSTS.board.margin,
-        height: length * this.CONSTS.tiles.height + length * this.CONSTS.board.margin
+        width: length * constants.tiles.width + length * constants.board.margin,
+        height: length * constants.tiles.height + length * constants.board.margin
       };
 
-      const delay = this.CONSTS.transitions.length;
+      let newPosition = 0;
+      let movementCoefficient = 1;
 
-      // newPos variable because it was getting UNREADABLE UP IN HERE
-      let newPos = 0;
 
       switch (directions.dir) {
         case Dir.UP:
           // reverses movement offset for determining new position
-          movementCoefficients.top *= -1;
+          movementCoefficient = -1;
         case Dir.DOWN:
           // gets new position by offsetting by movement length multiplied by tile height
-          newPos = this.top + movementCoefficients.top * movementOffset.height;
+          newPosition = this.top + movementCoefficient * movementOffset.height;
 
           if (directions.movement.indexOf('merger') > -1) {
-            setTimeout(() => {this.simulateMergedTile(this)}, delay * length);
+            setTimeout(() => {this.simulateMergedTile()}, delay * length);
           }
 
-          transition.begin(this.el, `top ${this.top}px ${newPos}px linear ${delay * length}ms`);
+          transition.begin(this.el, `top ${this.top}px ${newPosition}px linear ${delay * length}ms`);
           break;
         case Dir.LEFT:
-          // reverses movement offset for determining new position
-          movementCoefficients.left *= -1;
+          movementCoefficient = -1;
         case Dir.RIGHT:
-          // gets new position by offsetting by movement length multiplied by tile width
-          newPos = this.left + (movementCoefficients.left * movementOffset.width);
+          newPosition = this.left + (movementCoefficient * movementOffset.width);
           if (directions.movement.indexOf('merger') > -1) {
-            setTimeout(() => {this.simulateMergedTile(this)}, delay * length);
+            setTimeout(() => {this.simulateMergedTile()}, delay * length);
           }
-          transition.begin(this.el, `left ${this.left}px ${newPos}px linear ${delay * length}ms`);
+          transition.begin(this.el, `left ${this.left}px ${newPosition}px linear ${delay * length}ms`);
         break;
-      }
-      // once movement is done set z-index to 1
+      }  
     });
 
-    this.zSetListener = this.movementService.zSetEmitters[this.rowIndex][this.columnIndex].subscribe( (z) => {
-      // just to set all the z-indexes easily.
+    this.zSetListener = this.movementService.zSetEmitters[this.rowIndex][this.columnIndex].subscribe(z => {
       this.renderer.setStyle(this.el, 'z-index', z);
     });
 
-    this.themeUpdateListener = this.boardService.themeUpdated.subscribe(() => {
-
-      const styles = this.boardService.colours[this.index];
-      for (const prop in styles) {
-        this.renderer.setStyle(this.elRef.nativeElement, prop, styles[prop]);
-      }
-    })
-
     if (this.tile.isNew) {
       // starts it out transparent, small, and centered, then grows and makes it opaque.
-      const startingSize = {width: 35, height: 35};
+      const startingSize = {
+        width: 35,
+        height: 35
+      };
 
       transition.begin(this.el,
         [
           'opacity 0.25 1 0.25s linear',
-          `width ${startingSize.width}px ${this.CONSTS.tiles.width}px 0.25s linear`,
-          `height ${startingSize.height}px ${this.CONSTS.tiles.height}px 0.25s linear`,
-          `left ${this.left + ((this.CONSTS.tiles.width - startingSize.width) / 2)}px ${this.left}px 0.25s linear`,
-          `top ${this.top + ((this.CONSTS.tiles.height - startingSize.height) / 2)}px ${this.top}px 0.25s linear`
+          `width ${startingSize.width}px ${constants.tiles.width}px 0.25s linear`,
+          `height ${startingSize.height}px ${constants.tiles.height}px 0.25s linear`,
+          `left ${this.left + ((constants.tiles.width - startingSize.width) / 2)}px ${this.left}px 0.25s linear`,
+          `top ${this.top + ((constants.tiles.height - startingSize.height) / 2)}px ${this.top}px 0.25s linear`
         ]
       )
     }
@@ -143,46 +119,29 @@ export class TileDirective extends CONSTANTS implements OnInit, OnDestroy {
     }
   }
 
-  simulateMergedTile(directive) {
-    const styles = this.boardService.colours[this.index + 1];
+  simulateMergedTile() {
+    const nextLevelTileValue = this.tileValueWorth + 1; 
 
-    for (const prop in styles) {
-      this.renderer.setStyle(this.elRef.nativeElement, prop, styles[prop]);
-    }
+    this.styleGameTile(nextLevelTileValue);
 
-    this.renderer.setProperty(this.el, 'innerHTML', String(Math.pow(2, this.index + 1)));
+    this.renderer.setProperty(this.el, 'innerHTML', String(this.tile.value * 2));
     this.renderer.setStyle(this.el, 'z-index', 30);
   }
 
   setPositions(): void {
-
     this.renderer.setStyle(this.el, 'top', `${this.top}px`);
     this.renderer.setStyle(this.el, 'left', `${this.left}px`);
-    this.renderer.setStyle(this.el, 'width', this.CONSTS.tiles.width + 'px');
-    this.renderer.setStyle(this.el, 'height', this.CONSTS.tiles.height + 'px');
+    this.renderer.setStyle(this.el, 'width', constants.tiles.width + 'px');
+    this.renderer.setStyle(this.el, 'height', constants.tiles.height + 'px');
   }
 
-  // setBorders() {
-  //   // defines border styling, since it's constant
-  //   const border = '1px solid black';
+  private styleGameTile(tileValue?: number) {
+    const tileStyle = this.boardService.colours[tileValue ?? this.tileValueWorth];
 
-  //   // if at top
-  //   if (this.rowIndex === 0) {
-  //     this.renderer.setStyle(this.elRef.nativeElement, 'border-top', border);
-  //   }
-  //   // if at bottom
-  //   if (this.rowIndex === 3) {
-  //     this.renderer.setStyle(this.elRef.nativeElement, 'border-bottom', border);
-  //   }
-  //   // if at left
-  //   if (this.columnIndex === 0) {
-  //     this.renderer.setStyle(this.elRef.nativeElement, 'border-left', border);
-  //   }
-  //   // if at right
-  //   if (this.columnIndex === 3) {
-  //     this.renderer.setStyle(this.elRef.nativeElement, 'border-right', border);
-  //   }
-  // }
+    for (const styling in tileStyle) {
+      this.renderer.setStyle(this.el, styling, tileStyle[styling]);
+    }
+  }
 
   get el() {
     return this.elRef.nativeElement;
@@ -191,6 +150,17 @@ export class TileDirective extends CONSTANTS implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.movementListener.unsubscribe();
     this.zSetListener.unsubscribe();
-    this.themeUpdateListener.unsubscribe();
+  }
+
+  get columnIndex() {
+    return Math.floor(this.index % constants.board.width);
+  }
+
+  get rowIndex() {
+    return Math.floor(this.index / constants.board.width);
+  }
+
+  get tileValueWorth() {
+    return Math.log(this.tile?.value ?? 1) / Math.log(2);
   }
 }
