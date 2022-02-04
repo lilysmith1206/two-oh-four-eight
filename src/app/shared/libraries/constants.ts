@@ -42,5 +42,34 @@ export const boardStylings = {
       {backgroundColor: 'hsl(50, 99%, 34%)', color: 'white'}, // 2^9, 512
       {backgroundColor: 'hsl(56, 98%, 31%)', color: 'white'}, // 2^10 1024
       {backgroundColor: 'hsl(61, 92%, 30%)', color: 'white'} // 2^11, 2048
-  ]
+  ],
+  lilac: [
+    {backgroundColor: '#F9DDFF', color: 'black'}, // 2^0, or blank cell
+    {backgroundColor: '#F5CBFF', color: 'black'}, // 2^1, 2
+    {backgroundColor: '#EEA7FF', color: 'black'}, // 2^2, 4
+    {backgroundColor: '#E686FE', color: 'black'}, // 2^3, 8
+    {backgroundColor: '#CD66FE', color: 'black'}, // 2^4, 16
+    {backgroundColor: '#B15CE5', color: 'white'}, // 2^5, 32
+    {backgroundColor: '#A562E8', color: 'white'}, // 2^6, 64
+    {backgroundColor: '#AF56F2', color: 'white'}, // 2^7, 128
+    {backgroundColor: '#D65CFE', color: 'black'}, // 2^8, 256
+    {backgroundColor: '#EF5AFE', color: 'black'}, // 2^9, 512
+    {backgroundColor: '#FC53FA', color: 'black'}, // 2^10 1024
+    {backgroundColor: '#F754E7', color: 'black'} // 2^11, 2048
+  ],
+};
+
+export const borderColours = {
+  light: {
+    backgroundColor: '#DDDDDD',
+    border: 'outset 3px #aaa'
+  },
+  dark: {
+    backgroundColor: '#2B2B2B',
+    border: 'outset 3px #0B0B0B'
+  },
+  lilac: {
+    backgroundColor: '#F9DDFF',
+    border: 'outset 3px #C9ADCF'
+  },
 };

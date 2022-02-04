@@ -8,8 +8,9 @@ import { BoardService } from '../shared/services/board.service';
   styleUrls: ['./scoreboard.component.css']
 })
 export class ScoreboardComponent implements OnInit {
-  highScore: number = 0;
+  highScore: number;
   displayedScore: number;
+  
   readonly scoreIncrementTimer: {
     incrementAmount: number,
     loopedThrough: number,
@@ -43,6 +44,10 @@ export class ScoreboardComponent implements OnInit {
       this.currentScore = Number(window.localStorage.getItem('score'));
       this.displayedScore = this.currentScore;
     }
+    else {
+      this.currentScore = 0;
+      this.displayedScore = 0;
+    }
 
     this.boardService.gameActive.pipe(
       tap(gameActive => {
@@ -55,7 +60,7 @@ export class ScoreboardComponent implements OnInit {
     ).subscribe();
   }
 
-  incrementScore(score: number) {
+  private incrementScore(score: number) {
     if (this.scoreIncrementTimer.id !== -1) {
       clearInterval(this.scoreIncrementTimer.id);
       this.scoreIncrementTimer.incrementAmount = this.currentScore - this.displayedScore + (score / 4);

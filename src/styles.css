@@ -5,6 +5,10 @@ html.light, body.light {
 html.dark, body.dark {
   background-color: #434138;
 }
+html.lilac, body.lilac {
+  background-color: #EFE8F0;
+}
+
 body {
   position: relative;
 }

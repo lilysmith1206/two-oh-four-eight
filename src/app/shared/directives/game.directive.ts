@@ -1,7 +1,7 @@
 import { Directive, ElementRef, OnDestroy, OnInit, Renderer2 } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { constants } from '../libraries/constants';
+import { borderColours, constants } from '../libraries/constants';
 import { BoardService } from '../services/board.service';
 import { Theme, ThemeService } from '../services/theme.service';
 
@@ -11,12 +11,6 @@ import { Theme, ThemeService } from '../services/theme.service';
 export class GameDirective implements OnInit {
   // width and height based on TILE LENGTH AND HEIGHT AND BOARD LENGTH AND HEIGHT
 
-  private themeUpdateListener: Subscription;
-  private borderColours = {
-    'light': '#aaa',
-    'dark': '#999'
-  };
-
   constructor(private renderer: Renderer2,
     private elRef: ElementRef,
     private boardService: BoardService,
@@ -24,8 +18,8 @@ export class GameDirective implements OnInit {
   ) {
     this.themeService.themeChange.pipe(
       tap((theme: Theme) => {
-        this.renderer.setStyle(this.el, 'background-color', this.boardService.colours[0].backgroundColor);
-        this.renderer.setStyle(this.el, 'border', `outset 3px ${this.borderColours[theme]}`);
+        this.renderer.setStyle(this.el, 'background-color', borderColours[theme].backgroundColor);
+        this.renderer.setStyle(this.el, 'border', borderColours[theme].border);
       })
     ).subscribe();
   }
@@ -42,7 +36,8 @@ export class GameDirective implements OnInit {
     this.renderer.setStyle(this.el, 'width', width + 'px');
     this.renderer.setStyle(this.el, 'height', height + 'px');
     // border: outset 3px #aaa;
-    this.renderer.setStyle(this.el, 'border', `outset 3px ${this.borderColours[this.boardService.theme]}`);
+    this.renderer.setStyle(this.el, 'background-color', borderColours[this.boardService.theme].backgroundColor);
+    this.renderer.setStyle(this.el, 'border', borderColours[this.boardService.theme].border);
   }
 
   get el() {

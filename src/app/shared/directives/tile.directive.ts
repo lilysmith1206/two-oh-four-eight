@@ -6,7 +6,7 @@ import * as transition from '../libraries/transition.min.js'
 import { Dir } from '../templates/board.template';
 import { Subscription } from 'rxjs';
 import { boardStylings, constants } from '../libraries/constants';
-import { ThemeService } from '../services/theme.service';
+import { Theme, ThemeService } from '../services/theme.service';
 import { startWith, tap } from 'rxjs/operators';
 
 @Directive({
@@ -22,6 +22,7 @@ export class TileDirective implements OnInit, OnDestroy {
 
   private left: number;
   private top: number;
+  private theme: Theme;
 
   constructor(
     private renderer: Renderer2,
@@ -32,6 +33,11 @@ export class TileDirective implements OnInit, OnDestroy {
     ) {
       this.themeService.themeChange.pipe(
         startWith(this.boardService.theme),
+        tap(theme => {
+          if (theme) {
+            this.theme = theme as Theme;
+          }
+        }),
         tap(() => this.styleGameTile())
       ).subscribe();
     }
